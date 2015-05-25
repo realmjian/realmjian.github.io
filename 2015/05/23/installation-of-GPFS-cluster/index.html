@@ -1,0 +1,550 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>一次搭建GPFS FPO cluster的记录 | Jason Ma&#39;s Tech Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Jason Ma">
+    
+
+    
+    <meta name="description" content="三台主机，每台14块盘搭建一个GPFS FPO 集群">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一次搭建GPFS FPO cluster的记录">
+<meta property="og:url" content="http://majian.in/2015/05/23/installation-of-GPFS-cluster/index.html">
+<meta property="og:site_name" content="Jason Ma's Tech Blog">
+<meta property="og:description" content="三台主机，每台14块盘搭建一个GPFS FPO 集群">
+<meta property="og:updated_time" content="2015-05-23T10:27:51.087Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一次搭建GPFS FPO cluster的记录">
+<meta name="twitter:description" content="三台主机，每台14块盘搭建一个GPFS FPO 集群">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    
+<script type="text/javascript">
+#�����İٶ�ͳ�ƴ���
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?2ef7ca695a563268850bd2bdeaba14b4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Jason Ma&#39;s Tech Blog" title="Jason Ma&#39;s Tech Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Jason Ma&#39;s Tech Blog">Jason Ma&#39;s Tech Blog</a></h1>
+				<h2 class="blog-motto">Writing 1000 Words a Day Changes My Life(testing blog)</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/tags">Tags</a></li>
+					
+						<li><a href="/categories">Categories</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 8159045344704375541 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/05/23/installation-of-GPFS-cluster/" title="一次搭建GPFS FPO cluster的记录" itemprop="url">一次搭建GPFS FPO cluster的记录</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-22T16:30:00.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Hardware"><span class="toc-number">1.</span> <span class="toc-text">Hardware</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Network"><span class="toc-number">2.</span> <span class="toc-text">Network</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#OS"><span class="toc-number">3.</span> <span class="toc-text">OS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GPFS_cluster_config"><span class="toc-number">4.</span> <span class="toc-text">GPFS cluster config</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NSD"><span class="toc-number">5.</span> <span class="toc-text">NSD</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Installation"><span class="toc-number">6.</span> <span class="toc-text">Installation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#config_PATH"><span class="toc-number">7.</span> <span class="toc-text">config PATH</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Create_GPFS_cluster,got_error"><span class="toc-number">8.</span> <span class="toc-text">Create GPFS cluster,got error</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#found_“iptables”_was_on…-turn_off_iptables"><span class="toc-number">9.</span> <span class="toc-text">found “iptables” was on…..turn off iptables</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#apply_license"><span class="toc-number">10.</span> <span class="toc-text">apply license</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#start_GPFS_cluster"><span class="toc-number">11.</span> <span class="toc-text">start GPFS cluster</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#create_NSD"><span class="toc-number">12.</span> <span class="toc-text">create NSD</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#create_filesystem"><span class="toc-number">13.</span> <span class="toc-text">create filesystem</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#mmmount_filesystem"><span class="toc-number">14.</span> <span class="toc-text">mmmount filesystem</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#apply_policy,or_there_will_be_“no_space_left”_error"><span class="toc-number">15.</span> <span class="toc-text">apply policy,or there will be “no space left” error</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#simple_dd_test"><span class="toc-number">16.</span> <span class="toc-text">simple dd test</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#change_config"><span class="toc-number">17.</span> <span class="toc-text">change config</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimization_of_OS"><span class="toc-number">18.</span> <span class="toc-text">optimization of OS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimization_of_GPFS"><span class="toc-number">19.</span> <span class="toc-text">optimization of GPFS</span></a></li></ol>
+		
+		</div>
+		
+		<p>三台主机，每台14块盘搭建一个GPFS FPO 集群<br><a id="more"></a></p>
+<h3 id="Hardware">Hardware</h3><p>3 Dell servers</p>
+<p>per server</p>
+<p>16 * 1T disk per server,total 32T</p>
+<p>2*1T —&gt; RAID 1 for OS</p>
+<p>14*1T —&gt;FPO</p>
+<h3 id="Network">Network</h3><p>172.0.0.10-12     管理网络</p>
+<p>192.168.1.10-12    GPFS网络</p>
+<p>这里用2个1G的NIC 做bonding，做为GPFS 专用网络</p>
+<h3 id="OS">OS</h3><p>Redhat 6.5 X86_64</p>
+<p>gpfs1    172.0.0.10    192.168.1.10</p>
+<p>gpfs2    172.0.0.11     192.168.1.11</p>
+<p>gpfs3    172.0.0.12    192.168.1.12</p>
+<p>OS相关配置：</p>
+<p>iptables 关闭，或者添加相关rule（否则创建cluster时会出错)</p>
+<p>selinux 关闭</p>
+<p>主机间无密码登录</p>
+<p>hosts 主机保持一致，hostname可以ping通</p>
+<p>NTP 主机时间保持一致</p>
+<h3 id="GPFS_cluster_config">GPFS cluster config</h3><p>gpfs1    qurom-manage</p>
+<p>gpfs2    qurom-manage</p>
+<p>gpfs3    qurom-manage</p>
+<h3 id="NSD">NSD</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;&#10;%nsd:&#10;&#10; device=/dev/sdb1&#10;&#10; nsd=n1meta1&#10;&#10; servers=gpfs1&#10;&#10; usage=metadataOnly&#10;&#10; failureGroup=&#10;&#10; pool=system&#10;&#10;&#10;&#10; %pool:&#10;&#10;pool=system&#10;&#10;blockSize=256K&#10;&#10;usage=dataAndMetadata&#10;&#10;layoutMap=cluster&#10;&#10;&#10;&#10;%pool:&#10;&#10;pool=fpo&#10;&#10;blockSize=256K&#10;&#10;usage=dataOnly&#10;&#10;layoutMap=cluster&#10;&#10;allowWriteAffinity=yes&#10;&#10;writeAffinityDepth=0&#10;&#10;blockGroupFactor=128</span><br></pre></td></tr></table></figure>
+<h3 id="Installation">Installation</h3><p>再每台机器上安装GA packages,PTF5 packages,编译GPL</p>
+<p>安装4.1 GA vsersion</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 x86_64-linux]# ll&#10;&#10;total 30492&#10;&#10;-rw-r--r-- 1 root root 14482662 Jan  9  2015 gpfs.base-4.1.0-0.x86_64.rpm&#10;&#10;-rw-r--r-- 1 root root   197104 Jan  9  2015 gpfs.crypto-4.1.0-0.x86_64.rpm&#10;&#10;-rw-r--r-- 1 root root   292465 Jan  9  2015 gpfs.docs-4.1.0-0.noarch.rpm&#10;&#10;-rw-r--r-- 1 root root  1548454 Jan  9  2015 gpfs.ext-4.1.0-0.x86_64.rpm&#10;&#10;-rw-r--r-- 1 root root  9639410 Jan  9  2015 gpfs.gnr-4.1.0-0.x86_64.rpm.bak&#10;&#10;-rw-r--r-- 1 root root     4289 Jan  9  2015 gpfs.gnr.base-1.0.0-0.x86_64.rpm.bak&#10;&#10;-rw-r--r-- 1 root root   573838 Jan  9  2015 gpfs.gpl-4.1.0-0.noarch.rpm&#10;&#10;-rw-r--r-- 1 root root  4328387 Jan  9  2015 gpfs.gskit-8.0.50-16.x86_64.rpm&#10;&#10;-rw-r--r-- 1 root root   131514 Jan  9  2015 gpfs.msg.en_US-4.1.0-0.noarch.rpm&#10;&#10;[root@gpfs1 x86_64-linux]# rpm -ivh gpfs*.rpm&#10;&#10;Preparing...                ########################################### [100%]&#10;&#10;   1:gpfs.base              ########################################### [ 14%]&#10;&#10;   2:gpfs.ext               ########################################### [ 29%]&#10;&#10;   3:gpfs.crypto            ########################################### [ 43%]&#10;&#10;   4:gpfs.gpl               ########################################### [ 57%]&#10;&#10;   5:gpfs.msg.en_US         ########################################### [ 71%]&#10;&#10;   6:gpfs.gskit             ########################################### [ 86%]&#10;&#10;   7:gpfs.docs              ########################################### [100%]&#10;&#10;[root@gpfs1 x86_64-linux]#</span><br></pre></td></tr></table></figure>
+<p>安装 PTF5</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs2 x86_64-linux]# cd ../../gpfs41_PTF5_GA/x86_64-linux/&#10;&#10;&#10;&#10;[root@gpfs2 x86_64-linux]# mv gpfs.gnr-4.1.0-5.x86_64.rpm&#123;,.bak&#125;&#10;&#10;[root@gpfs2 x86_64-linux]# mv gpfs.gnr.base-1.0.0-0.x86_64.rpm&#123;,.bak&#125;&#10;&#10;[root@-gpfs2 x86_64-linux]# mv gpfs.gss.firmware-4.1.0-2.x86_64.rpm&#123;,.bak&#125;&#10;&#10;[root@gpfs2 x86_64-linux]# rpm -Uvh gpfs*.rpm</span><br></pre></td></tr></table></figure>
+<p>编译GPFS Linux Portable Layer</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs3 x86_64-linux]# cd /usr/lpp/mmfs/src&#10;&#10;[root@gpfs3 src]# make Autoconfig&#10;&#10;[root@gpfs3 src]# make World&#10;&#10;[root@gpfs3 src]# make InstallImages</span><br></pre></td></tr></table></figure>
+<h3 id="config_PATH">config PATH</h3><p>add “export PATH=”/usr/lpp/mmfs/bin:$PATH”” to /etc/profile</p>
+<p>then “source /etc/profile”</p>
+<h3 id="Create_GPFS_cluster,got_error">Create GPFS cluster,got error</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmcrcluster -N gpfs.nodelist --ccr-enable -r /usr/bin/ssh -R /usr/bin/scp -C OPowerGPFS -A&#10;&#10;mmcrcluster: Performing preliminary node verification ...&#10;&#10;mmcrcluster: Processing quorum and other critical nodes ...&#10;&#10;gpfs1: CCR: failed to connect to node 192.168.10.11:1191 (sock 3 err 1144)&#10;&#10;gpfs1: authentication refresh for node 2 (gpfs2) failed (err 1144)&#10;&#10;gpfs1: CCR: failed to connect to node 192.168.10.12:1191 (sock 3 err 1144)&#10;&#10;gpfs1: authentication refresh for node 3 (gpfs3) failed (err 1144)&#10;&#10;gpfs1: authentication initialization failed (err 1144)&#10;&#10;gpfs1: ccr server nodes to be initialized:&#10;&#10;gpfs1: 1 192.168.10.10:1191 gpfs1&#10;&#10;gpfs1: 2 192.168.10.11:1191 gpfs2&#10;&#10;gpfs1: 3 192.168.10.12:1191 gpfs3&#10;&#10;gpfs2: CCR: failed to connect to node 192.168.10.10:1191 (sock 3 err 1144)&#10;&#10;gpfs2: authentication refresh for node 1 (gpfs1) failed (err 1144)&#10;&#10;gpfs2: CCR: failed to connect to node 192.168.10.12:1191 (sock 3 err 1144)&#10;&#10;gpfs2: authentication refresh for node 3 (gpfs3) failed (err 1144)&#10;&#10;gpfs2: authentication initialization failed (err 1144)&#10;&#10;gpfs2: ccr server nodes to be initialized:&#10;&#10;gpfs2: 1 192.168.10.10:1191 gpfs1&#10;&#10;gpfs2: 2 192.168.10.11:1191 gpfs2&#10;&#10;gpfs2: 3 192.168.10.12:1191 gpfs3&#10;&#10;gpfs3: CCR: failed to connect to node 192.168.10.10:1191 (sock 3 err 1144)&#10;&#10;gpfs3: authentication refresh for node 1 (gpfs1) failed (err 1144)&#10;&#10;gpfs3: CCR: failed to connect to node 192.168.10.11:1191 (sock 3 err 1144)&#10;&#10;gpfs3: authentication refresh for node 2 (gpfs2) failed (err 1144)&#10;&#10;gpfs3: authentication initialization failed (err 1144)&#10;&#10;gpfs3: ccr server nodes to be initialized:&#10;&#10;gpfs3: 1 192.168.10.10:1191 gpfs1&#10;&#10;gpfs3: 2 192.168.10.11:1191 gpfs2&#10;&#10;gpfs3: 3 192.168.10.12:1191 gpfs3&#10;&#10;mmcrcluster: Processing quorum and other critical nodes ...&#10;&#10;mmcrcluster: Removing GPFS cluster files from the nodes in the cluster . . . &#10;&#10;mmcrcluster: Command failed. Examine previous error messages to determine cause.</span><br></pre></td></tr></table></figure>
+<h3 id="found_“iptables”_was_on…-turn_off_iptables">found “iptables” was on…..turn off iptables</h3><p>或者添加以下 iptables rules<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># iptables -A INPUT -p tcp --dport 1191 --sport 1191 -j ACCEPT&#10;&#10;# iptables -A INPUT -p udp --dport 1191 --sport 1191 -j ACCEPT&#10;&#10;# iptables -L -n |grep 1191&#10;&#10;ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp spt:1191 dpt:1191 &#10;&#10;ACCEPT     udp  --  0.0.0.0/0            0.0.0.0/0           udp spt:1191 dpt:1191 &#10;&#10;# /etc/rc.d/init.d/iptables save&#10;&#10;iptables: Saving firewall rules to /etc/sysconfig/iptables:[  OK  ]</span><br></pre></td></tr></table></figure></p>
+<p>再次创建cluster，works！</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmcrcluster -N gpfs.nodelist --ccr-enable -r /usr/bin/ssh -R /usr/bin/scp -C GPFS -A&#10;&#10;mmcrcluster: Performing preliminary node verification ...&#10;&#10;mmcrcluster: Processing quorum and other critical nodes ...&#10;&#10;mmcrcluster: Finalizing the cluster data structures ...&#10;&#10;mmcrcluster: Command successfully completed&#10;&#10;mmcrcluster: Warning: Not all nodes have proper GPFS license designations.&#10;&#10;    Use the mmchlicense command to designate licenses as needed.&#10;&#10;mmcrcluster: Propagating the cluster configuration data to all&#10;&#10;  affected nodes.  This is an asynchronous process.</span><br></pre></td></tr></table></figure>
+<p>创建成功，看一下cluster状态，会提示需要添加license</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@gpfs1 gpfsconfig]# mmlscluster&#10;&#10;&#10;&#10;===============================================================================&#10;&#10;| Warning:                                                                    |&#10;&#10;|   This cluster contains nodes that do not have a proper GPFS license        |&#10;&#10;|   designation.  This violates the terms of the GPFS licensing agreement.    |&#10;&#10;|   Use the mmchlicense command and assign the appropriate GPFS licenses      |&#10;&#10;|   to each of the nodes in the cluster.  For more information about GPFS     |&#10;&#10;|   license designation, see the Concepts, Planning, and Installation Guide.  |&#10;&#10;===============================================================================&#10;&#10;&#10;&#10;&#10;&#10;GPFS cluster information&#10;&#10;========================&#10;&#10;  GPFS cluster name:         GPFS.gpfs1&#10;&#10;  GPFS cluster id:           14862933950719025506&#10;&#10;  GPFS UID domain:           GPFS.gpfs1&#10;&#10;  Remote shell command:      /usr/bin/ssh&#10;&#10;  Remote file copy command:  /usr/bin/scp&#10;&#10;  Repository type:           CCR&#10;&#10;&#10;&#10; Node  Daemon node name  IP address     Admin node name  Designation&#10;&#10;---------------------------------------------------------------------&#10;&#10;   1   gpfs1             192.168.10.10  gpfs1            quorum-manager&#10;&#10;   2   gpfs2             192.168.10.11  gpfs2            quorum-manager&#10;&#10;   3   gpfs3             192.168.10.12  gpfs3            quorum-manager</span><br></pre></td></tr></table></figure>
+<h3 id="apply_license">apply license</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmchlicense server --accept -N gpfs1,gpfs2,gpfs3&#10;&#10;&#10;&#10;The following nodes will be designated as possessing GPFS server licenses:&#10;&#10;        gpfs1,gpfs2,gpfs3&#10;&#10;mmchlicense: Command successfully completed&#10;&#10;mmchlicense: Propagating the cluster configuration data to all&#10;&#10;  affected nodes.  This is an asynchronous process.</span><br></pre></td></tr></table></figure>
+<p>查看license<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;&#10;[root@gpfs1 gpfsconfig]# mmlslicense -L&#10;&#10; Node name                      Required license   Designated license&#10;&#10;---------------------------------------------------------------------&#10;&#10;gpfs1                              server              server&#10;&#10;gpfs3                              server              server&#10;&#10;gpfs2                              server              server&#10;&#10;&#10;&#10; Summary information &#10;&#10;---------------------&#10;&#10;Number of nodes defined in the cluster:                          3&#10;&#10;Number of nodes with server license designation:                 3&#10;&#10;Number of nodes with client license designation:                 0&#10;&#10;Number of nodes still requiring server license designation:      0&#10;&#10;Number of nodes still requiring client license designation:      0&#10;&#10;This node runs GPFS Advanced Edition&#10;&#10;[root@gpfs1 gpfsconfig]#</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;&#10;&#10;[root@gpfs1 gpfsconfig]# mmlscluster&#10;&#10;&#10;&#10;GPFS cluster information&#10;&#10;========================&#10;&#10;  GPFS cluster name:         GPFS.gpfs1&#10;&#10;  GPFS cluster id:           14862933950719025506&#10;&#10;  GPFS UID domain:           GPFS.gpfs1&#10;&#10;  Remote shell command:      /usr/bin/ssh&#10;&#10;  Remote file copy command:  /usr/bin/scp&#10;&#10;  Repository type:           CCR&#10;&#10;&#10;&#10; Node  Daemon node name  IP address     Admin node name  Designation&#10;&#10;---------------------------------------------------------------------&#10;&#10;   1   gpfs1             192.168.10.10  gpfs1            quorum-manager&#10;&#10;   2   gpfs2             192.168.10.11  gpfs2            quorum-manager&#10;&#10;   3   gpfs3             192.168.10.12  gpfs3            quorum-manager</span><br></pre></td></tr></table></figure>
+<h3 id="start_GPFS_cluster">start GPFS cluster</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmstartup -a&#10;&#10;Mon Jan 12 14:13:18 CST 2015: mmstartup: Starting GPFS ..</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmgetstate -aLs&#10;&#10;&#10;&#10; Node number  Node name       Quorum  Nodes up  Total nodes  GPFS state  Remarks    &#10;&#10;------------------------------------------------------------------------------------&#10;&#10;       1      gpfs1              2        3          3       active      quorum node&#10;&#10;       2      gpfs2              2        3          3       active      quorum node&#10;&#10;       3      gpfs3              2        3          3       active      quorum node&#10;&#10;&#10;&#10; Summary information &#10;&#10;---------------------&#10;&#10;Number of nodes defined in the cluster:            3&#10;&#10;Number of local nodes active in the cluster:       3&#10;&#10;Number of remote nodes joined in this cluster:     0&#10;&#10;Number of quorum nodes defined in the cluster:     3&#10;&#10;Number of quorum nodes active in the cluster:      3&#10;&#10;Quorum = 2, Quorum achieved&#10;&#10;&#10;&#10;[root@gpfs1 gpfsconfig]#</span><br></pre></td></tr></table></figure>
+<h3 id="create_NSD">create NSD</h3><p>stanzafile<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#NSD in system pool for meta&#10;%nsd:&#10; device=/dev/sdb1&#10; nsd=n1meta1&#10; servers=gpfs1&#10; usage=metadataOnly&#10; failureGroup=11&#10; pool=system&#10; &#10; %nsd:&#10; device=/dev/sdb1&#10; nsd=n2meta2&#10; servers=gpfs2&#10; usage=metadataOnly&#10; failureGroup=22&#10; pool=system&#10; &#10; %nsd:&#10; device=/dev/sdb1&#10; nsd=n3meta3&#10; servers=gpfs3&#10; usage=metadataOnly&#10; failureGroup=33&#10; pool=system&#10;&#10;# NSD in FPO pool for data on &#34;gpfs1&#34; &#10;&#10; %nsd:&#10; device=/dev/sdb2&#10; nsd=n1data1&#10; servers=gpfs1&#10; usage=dataOnly&#10; failureGroup=1,0,1&#10; pool=fpo&#10; &#10;  %nsd:&#10; device=/dev/sdc1&#10; nsd=n1data2&#10; servers=gpfs1&#10; usage=dataOnly&#10; failureGroup=1,0,1&#10; pool=fpo&#10; &#10;   %nsd:&#10; device=/dev/sdd1&#10; nsd=n1data3&#10; servers=gpfs1&#10; usage=dataOnly&#10; failureGroup=1,0,1&#10; pool=fpo&#10;.....&#10; &#10;# NSD in FPO pool for data on &#34;gpfs2&#34; &#10;&#10;  %nsd:&#10; device=/dev/sdb2&#10; nsd=n2data1&#10; servers=gpfs2&#10; usage=dataOnly&#10; failureGroup=2,0,1&#10; pool=fpo&#10; &#10;  %nsd:&#10; device=/dev/sdc1&#10; nsd=n2data2&#10; servers=gpfs2&#10; usage=dataOnly&#10; failureGroup=2,0,1&#10; pool=fpo&#10; &#10;   %nsd:&#10; device=/dev/sdd1&#10; nsd=n2data3&#10; servers=gpfs2&#10; usage=dataOnly&#10; failureGroup=2,0,1&#10; pool=fpo&#10; &#10;......&#10;# NSD in FPO pool for data on &#34;gpfs3&#34; &#10;&#10;  %nsd:&#10; device=/dev/sdb2&#10; nsd=n3data1&#10; servers=gpfs3&#10; usage=dataOnly&#10; failureGroup=3,0,1&#10; pool=fpo&#10; &#10;  %nsd:&#10; device=/dev/sdc1&#10; nsd=n3data2&#10; servers=gpfs3&#10; usage=dataOnly&#10; failureGroup=3,0,1&#10; pool=fpo&#10; &#10;   %nsd:&#10; device=/dev/sdd1&#10; nsd=n3data3&#10; servers=gpfs3&#10; usage=dataOnly&#10; failureGroup=3,0,1&#10; pool=fpo&#10;......&#10;# Pool definition&#10; &#10; %pool:&#10;pool=system&#10;blockSize=256K&#10;usage=dataAndMetadata&#10;layoutMap=cluster&#10;&#10;&#10;%pool:&#10;pool=fpo&#10;blockSize=256K&#10;usage=dataOnly&#10;layoutMap=cluster&#10;allowWriteAffinity=yes&#10;writeAffinityDepth=1&#10;blockGroupFactor=128</span><br></pre></td></tr></table></figure></p>
+<p>用stanzafile创建nsd，每台机器14块盘，下面命令返回结果大部分省略<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmcrnsd -F gpfs.stanzafile -v yes&#10;&#10;mmcrnsd: Processing disk sdb1&#10;&#10;mmcrnsd: Processing disk sdb1&#10;&#10;mmcrnsd: Processing disk sdb1&#10;&#10;mmcrnsd: Processing disk sdb2&#10;&#10;mmcrnsd: Processing disk sdc1&#10;&#10;mmcrnsd: Processing disk sdd1&#10;&#10;mmcrnsd: Processing disk sde1&#10;&#10;mmcrnsd: Processing disk sdf1&#10;&#10;mmcrnsd: Processing disk sdg1&#10;&#10;mmcrnsd: Processing disk sdh1&#10;&#10;.....&#10;&#10;mmcrnsd: Propagating the cluster configuration data to all&#10;&#10;  affected nodes.  This is an asynchronous process.</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmlsnsd -L&#10;&#10;&#10;&#10; File system   Disk name    NSD volume ID      NSD servers                                   &#10;&#10;---------------------------------------------------------------------------------------------&#10;&#10; (free disk)   n1data10     AC100A0A54B366A6   gpfs1                    &#10;&#10; (free disk)   n1data11     AC100A0A54B366A7   gpfs1                    &#10;&#10; (free disk)   n1data12     AC100A0A54B366A8   gpfs1                                        &#10;&#10; (free disk)   n2data10     AC100A0B54B366C8   gpfs2                    &#10;&#10; (free disk)   n2data11     AC100A0B54B366CB   gpfs2                    &#10;&#10; (free disk)   n2data12     AC100A0B54B366CE   gpfs2                                   &#10;&#10; (free disk)   n3data10     AC100A0C54B366F5   gpfs3                    &#10;&#10; (free disk)   n3data11     AC100A0C54B366F8   gpfs3                    &#10;......</span><br></pre></td></tr></table></figure>
+<h3 id="create_filesystem">create filesystem</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmcrfs gpfs -F gpfs.stanzafile -A yes -B 256K -k all -m 2 -M 3 -r 2 -R 3 -T /gpfs -v yes&#10;&#10;&#10;&#10;The following disks of gpfs will be formatted on node opower-gpfs1:&#10;&#10;    n1meta1: size 476836 MB&#10;&#10;    n2meta2: size 476836 MB&#10;&#10;    n3meta3: size 476836 MB&#10;&#10;    n1data1: size 475552 MB&#10;&#10;    n1data2: size 953342 MB&#10;......&#10;Formatting file system ...&#10;&#10;Disks up to size 4.4 TB can be added to storage pool system.&#10;&#10;Disks up to size 8.0 TB can be added to storage pool fpo.&#10;&#10;Creating Inode File&#10;&#10;  12 % complete on Mon Jan 12 14:27:08 2015&#10;&#10;  25 % complete on Mon Jan 12 14:27:13 2015&#10;&#10;  38 % complete on Mon Jan 12 14:27:18 2015&#10;&#10;  51 % complete on Mon Jan 12 14:27:24 2015&#10;&#10;  64 % complete on Mon Jan 12 14:27:29 2015&#10;&#10;  78 % complete on Mon Jan 12 14:27:34 2015&#10;&#10;  90 % complete on Mon Jan 12 14:27:39 2015&#10;&#10; 100 % complete on Mon Jan 12 14:27:42 2015&#10;&#10;Creating Allocation Maps&#10;&#10;Creating Log Files&#10;&#10;Clearing Inode Allocation Map&#10;&#10;Clearing Block Allocation Map&#10;&#10;Formatting Allocation Map for storage pool system&#10;&#10;Formatting Allocation Map for storage pool fpo&#10;&#10;  17 % complete on Mon Jan 12 14:27:53 2015&#10;&#10;  34 % complete on Mon Jan 12 14:27:58 2015&#10;&#10;  51 % complete on Mon Jan 12 14:28:03 2015&#10;&#10;  69 % complete on Mon Jan 12 14:28:08 2015&#10;&#10;  85 % complete on Mon Jan 12 14:28:13 2015&#10;&#10; 100 % complete on Mon Jan 12 14:28:17 2015&#10;&#10;Completed creation of file system /dev/gpfs.&#10;&#10;mmcrfs: Propagating the cluster configuration data to all&#10;&#10;  affected nodes.  This is an asynchronous process.</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmlsnsd&#10;&#10;&#10;&#10; File system   Disk name    NSD servers                                    &#10;&#10;---------------------------------------------------------------------------&#10;&#10; gpfs          n1meta1      gpfs1                    &#10;&#10; gpfs          n2meta2      gpfs2                    &#10;&#10; gpfs          n3meta3      gpfs3                    &#10;&#10; ......</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;&#10;&#10;[root@gpfs1 gpfsconfig]# mmlsdisk gpfs&#10;&#10;disk         driver   sector     failure holds    holds                            storage&#10;&#10;name         type       size       group metadata data  status        availability pool&#10;&#10;------------ -------- ------ ----------- -------- ----- ------------- ------------ ------------&#10;&#10;n1meta1      nsd         512          11 Yes      No    ready         up           system       &#10;&#10;n2meta2      nsd         512          22 Yes      No    ready         up           system       &#10;&#10;n3meta3      nsd         512          33 Yes      No    ready         up           system       &#10;&#10;......</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;&#10;&#10;[root@gpfs1 gpfsconfig]# mmdf gpfs --block-size auto&#10;&#10;disk                disk size  failure holds    holds                 free                free&#10;&#10;name                             group metadata data        in full blocks        in fragments&#10;&#10;--------------- ------------- -------- -------- ----- -------------------- -------------------&#10;&#10;Disks in storage pool: system (Maximum disk size allowed is 4.0 TB)&#10;&#10;n1meta1                465.7G       11 Yes      No           463.2G ( 99%)          552K ( 0%) &#10;&#10;n2meta2                465.7G       22 Yes      No           463.2G ( 99%)          520K ( 0%) &#10;&#10;n3meta3                465.7G       33 Yes      No           463.2G ( 99%)          536K ( 0%) &#10;&#10;                -------------                         -------------------- -------------------&#10;&#10;(pool total)           1.364T                                1.357T ( 99%)         1.57M ( 0%)&#10;&#10;&#10;&#10;Disks in storage pool: fpo (Maximum disk size allowed is 7.3 TB)&#10;&#10;n1data14                 931G    1,0,1 No       Yes          930.9G (100%)          376K ( 0%) &#10;&#10;n1data13                 931G    1,0,1 No       Yes          930.9G (100%)          376K ( 0%) &#10;&#10;n1data12                 931G    1,0,1 No       Yes          930.9G (100%)          376K ( 0%) &#10;&#10;n1data1                464.4G    1,0,1 No       Yes          464.3G (100%)          376K ( 0%) &#10;&#10;n1data2                  931G    1,0,1 No       Yes          930.9G (100%)          376K ( 0%) &#10;&#10;......&#10;&#10;                -------------                         -------------------- -------------------&#10;&#10;(pool total)           36.82T                                36.82T (100%)        15.42M ( 0%)&#10;&#10;&#10;&#10;                =============                         ==================== ===================&#10;&#10;(data)                 36.82T                                36.82T (100%)        15.42M ( 0%)&#10;&#10;(metadata)             1.364T                                1.357T ( 99%)         1.57M ( 0%)&#10;&#10;                =============                         ==================== ===================&#10;&#10;(total)                38.18T                                38.17T (100%)        16.99M ( 0%)&#10;&#10;&#10;&#10;Inode Information&#10;&#10;-----------------&#10;&#10;Number of used inodes:            4038&#10;&#10;Number of free inodes:          496122&#10;&#10;Number of allocated inodes:     500160&#10;&#10;Maximum number of inodes:     40037568</span><br></pre></td></tr></table></figure>
+<h3 id="mmmount_filesystem">mmmount filesystem</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;&#10;&#10;[root@gpfs1 gpfsconfig]# mmmount all -a&#10;&#10;Mon Jan 12 14:36:51 CST 2015: mmmount: Mounting file systems ...</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# df -h&#10;&#10;Filesystem                          Size  Used Avail Use% Mounted on&#10;&#10;/dev/mapper/vg_opowergpfs1-lv_root   50G  4.0G   43G   9% /&#10;&#10;tmpfs                                64G   72K   64G   1% /dev/shm&#10;&#10;/dev/sda1                           485M   39M  421M   9% /boot&#10;&#10;/dev/mapper/vg_opowergpfs1-lv_home  863G  200M  819G   1% /home&#10;&#10;/dev/gpfs                            37T  2.7G   37T   1% /gpfs</span><br></pre></td></tr></table></figure>
+<h3 id="apply_policy,or_there_will_be_“no_space_left”_error">apply policy,or there will be “no space left” error</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmchpolicy gpfs gpfs.pol &#10;&#10;Validated policy `gpfs.pol&#39;: Parsed 1 policy rules.&#10;&#10;Policy `gpfs.pol&#39; installed and broadcast to all nodes.&#10;&#10;[root@gpfs1 gpfsconfig]# mmlspolicy gpfs -L&#10;&#10;RULE &#39;DEFAULT&#39; SET POOL &#39;fpo&#39;</span><br></pre></td></tr></table></figure>
+<h3 id="simple_dd_test">simple dd test</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfs]# dd bs=1M count=10000 if=/dev/zero of=10G conv=fdatasync &#10;&#10;10000+0 records in&#10;&#10;10000+0 records out&#10;&#10;10485760000 bytes (10 GB) copied, 98.8562 s, 106 MB/s&#10;&#10;[root@opower-gpfs1 gpfs]# dd bs=256K count=40000 if=/dev/zero of=10G conv=fdatasync   &#10;&#10;40000+0 records in&#10;&#10;40000+0 records out&#10;&#10;10485760000 bytes (10 GB) copied, 98.8632 s, 106 MB/s&#10;&#10;[root@gpfs1 gpfs]# dd bs=1M count=1000 if=/dev/zero of=1G conv=fdatasync    &#10;&#10;1000+0 records in&#10;&#10;1000+0 records out&#10;&#10;1048576000 bytes (1.0 GB) copied, 9.60292 s, 109 MB/s&#10;&#10;[root@opower-gpfs1 gpfs]#</span><br></pre></td></tr></table></figure>
+<h3 id="change_config">change config</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfs]# mmchconfig readReplicaPolicy=local&#10;&#10;[root@gpfs1 gpfs]# mmchconfig restripeOnDiskFailure=yes -i&#10;&#10;[root@gpfs1 gpfs]# mmchconfig metadataDiskWaitTimeForRecovery=1800&#10;&#10;[root@opower-gpfs1 gpfs]# mmchconfig dataDiskWaitTimeForRecovery=3600</span><br></pre></td></tr></table></figure>
+<h3 id="optimization_of_OS">optimization of OS</h3><p>sysctl.conf</p>
+<p>add following to /etc/sysctl.conf</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;# increase Linux TCP buffer limits&#10;&#10;net.core.rmem_max = 16777216&#10;&#10;net.core.wmem_max = 16777216&#10;&#10;# increase default and maximum Linux TCP buffer sizes&#10;&#10;net.ipv4.tcp_rmem = 4096 262144 8388608&#10;&#10;net.ipv4.tcp_wmem = 4096 262144 8388608&#10;&#10;net.ipv4.tcp_mem = 16777216 16777216 16777216&#10;&#10;# GPFSincrease max backlog to avoid dropped packets&#10;&#10;net.core.netdev_max_backlog=250000&#10;&#10;net.ipv4.tcp_synack_retries = 10&#10;&#10;vm.min_free_kbytes = 6553&#10;&#10;net.ipv4.tcp_sack = 1&#10;&#10;#net.core.somaxconn be a value greater than or equal toGPFS:socketMaxListenConnections&#10;&#10;net.core.somaxconn=128</span><br></pre></td></tr></table></figure>
+<p>then </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfs]# sysctl -p /etc/sysctl.conf &#10;&#10;net.ipv4.ip_forward = 0&#10;&#10;net.ipv4.conf.default.rp_filter = 1&#10;&#10;net.ipv4.conf.default.accept_source_route = 0&#10;&#10;kernel.sysrq = 0&#10;&#10;kernel.core_uses_pid = 1&#10;&#10;net.ipv4.tcp_syncookies = 1&#10;&#10;error: &#34;net.bridge.bridge-nf-call-ip6tables&#34; is an unknown key&#10;&#10;error: &#34;net.bridge.bridge-nf-call-iptables&#34; is an unknown key&#10;&#10;error: &#34;net.bridge.bridge-nf-call-arptables&#34; is an unknown key&#10;&#10;kernel.msgmnb = 65536&#10;&#10;kernel.msgmax = 65536&#10;&#10;kernel.shmmax = 68719476736&#10;&#10;kernel.shmall = 4294967296&#10;&#10;net.core.rmem_max = 16777216&#10;&#10;net.core.wmem_max = 16777216&#10;&#10;net.ipv4.tcp_rmem = 4096 262144 8388608&#10;&#10;net.ipv4.tcp_wmem = 4096 262144 8388608&#10;&#10;net.ipv4.tcp_mem = 16777216 16777216 16777216&#10;&#10;net.core.netdev_max_backlog = 250000&#10;&#10;net.ipv4.tcp_synack_retries = 10&#10;&#10;vm.min_free_kbytes = 6553&#10;&#10;net.ipv4.tcp_sack = 1&#10;&#10;net.core.somaxconn = 128&#10;&#10;[root@opower-gpfs1 gpfs]#</span><br></pre></td></tr></table></figure>
+<p>sshd_config</p>
+<p>add following to sshd_config</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;# For GPFS&#10;&#10;MaxStartups 1024</span><br></pre></td></tr></table></figure>
+<h3 id="optimization_of_GPFS">optimization of GPFS</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;mmchconfig leaseRecoveryWait=65&#10;&#10;mmchconfig maxFilesToCache=100000&#10;&#10;mmchconfig maxStatCache=100000&#10;&#10;mmchconfig nsdMinWorkerThreads=3072&#10;&#10;mmchconfig nsdInlineWriteMax=1M&#10;&#10;mmchconfig nsdSmallThreadRatio=2&#10;&#10;mmchconfig nsdMaxWorkerThreads=3072&#10;&#10;mmchconfig nsdThreadsPerDisk=45&#10;&#10;mmchconfig nsdThreadsPerQueue=16&#10;&#10;mmchconfig forceLogWriteOnFdatasync=no&#10;&#10;mmchconfig disableInodeUpdateOnFDatasync=yes&#10;&#10;mmchconfig unmountOnDiskFail=meta&#10;&#10;mmchconfig dataDiskCacheProtectionMethod=2&#10;&#10;mmchconfig worker1Threads=1024&#10;&#10;mmchconfig maxMBpS=400&#10;&#10;mmchconfig maxblocksize=16M&#10;&#10;mmchconfig nsdSmallBufferSize=128K&#10;&#10;mmchconfig enableLinuxReplicatedAio=yes&#10;&#10;mmchconfig idleSocketTimeout=0&#10;&#10;mmchconfig tscWorkerPool=128&#10;&#10;mmchconfig maxReceiverThreads=24</span><br></pre></td></tr></table></figure>
+<p>DONE.</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/GPFS/">GPFS</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/GPFS/">GPFS</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://majian.in/2015/05/23/installation-of-GPFS-cluster/" data-title="一次搭建GPFS FPO cluster的记录 | Jason Ma&#39;s Tech Blog" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/05/23/GPFS-nodes-change-IP/" title="GPFS cluster 更改 IP">
+  <strong>上一篇：</strong><br/>
+  <span>
+  GPFS cluster 更改 IP</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/05/23/first-post/"  title="First post">
+ <strong>下一篇：</strong><br/> 
+ <span>First post
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/05/23/installation-of-GPFS-cluster/" data-title="一次搭建GPFS FPO cluster的记录" data-url="http://majian.in/2015/05/23/installation-of-GPFS-cluster/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Hardware"><span class="toc-number">1.</span> <span class="toc-text">Hardware</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Network"><span class="toc-number">2.</span> <span class="toc-text">Network</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#OS"><span class="toc-number">3.</span> <span class="toc-text">OS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GPFS_cluster_config"><span class="toc-number">4.</span> <span class="toc-text">GPFS cluster config</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NSD"><span class="toc-number">5.</span> <span class="toc-text">NSD</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Installation"><span class="toc-number">6.</span> <span class="toc-text">Installation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#config_PATH"><span class="toc-number">7.</span> <span class="toc-text">config PATH</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Create_GPFS_cluster,got_error"><span class="toc-number">8.</span> <span class="toc-text">Create GPFS cluster,got error</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#found_“iptables”_was_on…-turn_off_iptables"><span class="toc-number">9.</span> <span class="toc-text">found “iptables” was on…..turn off iptables</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#apply_license"><span class="toc-number">10.</span> <span class="toc-text">apply license</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#start_GPFS_cluster"><span class="toc-number">11.</span> <span class="toc-text">start GPFS cluster</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#create_NSD"><span class="toc-number">12.</span> <span class="toc-text">create NSD</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#create_filesystem"><span class="toc-number">13.</span> <span class="toc-text">create filesystem</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#mmmount_filesystem"><span class="toc-number">14.</span> <span class="toc-text">mmmount filesystem</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#apply_policy,or_there_will_be_“no_space_left”_error"><span class="toc-number">15.</span> <span class="toc-text">apply policy,or there will be “no space left” error</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#simple_dd_test"><span class="toc-number">16.</span> <span class="toc-text">simple dd test</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#change_config"><span class="toc-number">17.</span> <span class="toc-text">change config</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimization_of_OS"><span class="toc-number">18.</span> <span class="toc-text">optimization of OS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimization_of_GPFS"><span class="toc-number">19.</span> <span class="toc-text">optimization of GPFS</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/GPFS/" title="GPFS">GPFS<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/GPFS/" title="GPFS">GPFS<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Nova/" title="Nova">Nova<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Jason Ma. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/jasonmajian" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		
+		
+		
+		<a href="mailto:jianma@outlook.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-sa/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-sa.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Jason Ma">Jason Ma</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"jasonblog"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fef7ca695a563268850bd2bdeaba14b4' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,507 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Nova evacuate test | Jason Ma&#39;s Tech Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Jason Ma">
+    
+
+    
+    <meta name="description" content="测试一下nova evacuate功能
+要求是vm是active或者sotpped状态，nova-compute是down得状态">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nova evacuate test">
+<meta property="og:url" content="http://majian.in/2015/05/23/Nova-evacuate-test/index.html">
+<meta property="og:site_name" content="Jason Ma's Tech Blog">
+<meta property="og:description" content="测试一下nova evacuate功能
+要求是vm是active或者sotpped状态，nova-compute是down得状态">
+<meta property="og:updated_time" content="2015-05-23T09:05:12.517Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Nova evacuate test">
+<meta name="twitter:description" content="测试一下nova evacuate功能
+要求是vm是active或者sotpped状态，nova-compute是down得状态">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    
+<script type="text/javascript">
+#�����İٶ�ͳ�ƴ���
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?2ef7ca695a563268850bd2bdeaba14b4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Jason Ma&#39;s Tech Blog" title="Jason Ma&#39;s Tech Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Jason Ma&#39;s Tech Blog">Jason Ma&#39;s Tech Blog</a></h1>
+				<h2 class="blog-motto">Writing 1000 Words a Day Changes My Life(testing blog)</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/tags">Tags</a></li>
+					
+						<li><a href="/categories">Categories</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 8159045344704375541 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/05/23/Nova-evacuate-test/" title="Nova evacuate test" itemprop="url">Nova evacuate test</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-23T04:29:43.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			
+		
+		</div>
+		
+		<p>测试一下nova evacuate功能</p>
+<p>要求是vm是active或者sotpped状态，nova-compute是down得状态</p>
+<a id="more"></a>
+<p>确认一下测试vm所在Nova node的状态是down的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;nova-compute     compute96                            nova             enabled    XXX   2015-03-24 08:15:13</span><br></pre></td></tr></table></figure>
+<p>测试开始，并指定目标Nova node为 compute97</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova evacuate --on-shared-storage afc27839-08ac-493d-b9f9-654537edf6dc compute97</span><br></pre></td></tr></table></figure>
+<p>检查 vm状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova list |grep afc27839-08ac-493d-b9f9-654537edf6dc&#10;&#10;| afc27839-08ac-493d-b9f9-654537edf6dc | mjrebuild-test               | SHUTOFF | None       | Shutdown    | subnet-01=192.168.3.129               |&#10;&#10;[root@SDE-Controller auto_script]# nova show afc27839-08ac-493d-b9f9-654537edf6dc&#10;&#10;+--------------------------------------+-------------------------------------------------------------------------------------------+&#10;&#10;| Property                             | Value                                                                                     |&#10;&#10;+--------------------------------------+-------------------------------------------------------------------------------------------+&#10;&#10;| status                               | SHUTOFF                                                                                   |&#10;&#10;| updated                              | 2015-03-24T08:17:27Z                                                                      |&#10;&#10;| OS-EXT-STS:task_state                | None                                                                                      |&#10;&#10;| OS-EXT-SRV-ATTR:host                 | compute97                                                                                 |&#10;&#10;| key_name                             | crlitkey                                                                                  |&#10;&#10;| image                                | ubuntu1404-x86_64 (d9c65f47-c688-4132-8e65-6029f3698de8)                                  |&#10;&#10;| hostId                               | 67e2041574276e08e131a3b8263179fcac9ae352dab8e56a497d39ef                                  |&#10;&#10;| OS-EXT-STS:vm_state                  | stopped                                                                                   |&#10;&#10;| OS-EXT-SRV-ATTR:instance_name        | instance-00000350                                                                         |&#10;&#10;| OS-SRV-USG:launched_at               | 2015-03-24T08:18:14.000000                                                                |&#10;&#10;| OS-EXT-SRV-ATTR:hypervisor_hostname  | compute97                                                                                 |&#10;&#10;| flavor                               | flavor-27 (27)                                                                            |&#10;&#10;| id                                   | afc27839-08ac-493d-b9f9-654537edf6dc                                                      |&#10;&#10;| security_groups                      | [&#123;u&#39;name&#39;: u&#39;default&#39;&#125;]                                                                   |&#10;&#10;| OS-SRV-USG:terminated_at             | None                                                                                      |&#10;&#10;| user_id                              | d899255073f5451ca99cf91285de60b3                                                          |&#10;&#10;| name                                 | mjrebuild-test                                                                            |&#10;&#10;| created                              | 2015-03-24T07:42:13Z                                                                      |&#10;&#10;| tenant_id                            | 46d35d26975b4430aa12d77aae8b6e6e                                                          |&#10;&#10;| subnet-01 network                    | 192.168.3.129                                                                             |&#10;&#10;| OS-DCF:diskConfig                    | MANUAL                                                                                    |&#10;&#10;| metadata                             | &#123;u&#39;104group&#39;: u&#39;3&#39;, u&#39;requester&#39;: u&#39;majian@cn.ibm.com&#39;, u&#39;creator&#39;: u&#39;majian@cn.ibm.com&#39;&#125; |&#10;&#10;| os-extended-volumes:volumes_attached | [&#123;u&#39;id&#39;: u&#39;4264520f-30b8-4187-96b3-90002445a59f&#39;&#125;]                                        |&#10;&#10;| accessIPv4                           |                                                                                           |&#10;&#10;| accessIPv6                           |                                                                                           |&#10;&#10;| OS-EXT-STS:power_state               | 4                                                                                         |&#10;&#10;| OS-EXT-AZ:availability_zone          | nova                                                                                      |&#10;&#10;| config_drive                         |                                                                                           |&#10;&#10;+--------------------------------------+-------------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<p>发现host变为了compute97，vm仍让是stopped状态</p>
+<p>再测试一下vm在active状态，把compute97的nova-compute service停掉，compute96的nova-compute service起来</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;nova-compute     compute96                            nova             enabled    :-)   2015-03-24 08:20:26&#10;&#10;nova-compute     compute97                            nova             enabled    XXX   2015-03-24 08:19:34</span><br></pre></td></tr></table></figure>
+<p>再测evacuate</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova evacuate --on-shared-storage afc27839-08ac-493d-b9f9-654537edf6dc compute96</span><br></pre></td></tr></table></figure>
+<p>发现ip断掉了，vm还是active状态，vm变成了在compute96上,ping值很高</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;64 bytes from 192.168.3.129: icmp_seq=23 ttl=64 time=1.42 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=24 ttl=64 time=0.672 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=25 ttl=64 time=0.907 ms&#10;&#10;From 192.168.2.232 icmp_seq=53 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=54 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=55 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=69 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=82 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=83 Destination Host Unreachable&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=26 ttl=64 time=58261 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=27 ttl=64 time=57261 ms</span><br></pre></td></tr></table></figure>
+<p>过了一会，断掉了，又起来了，正常了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;64 bytes from 192.168.3.129: icmp_seq=97 ttl=64 time=19594 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=110 ttl=64 time=6594 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=92 ttl=64 time=24594 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=108 ttl=64 time=8594 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=116 ttl=64 time=593 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=117 ttl=64 time=0.697 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=118 ttl=64 time=0.677 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=119 ttl=64 time=0.718 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=120 ttl=64 time=0.436 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=121 ttl=64 time=0.426 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=122 ttl=64 time=165 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=123 ttl=64 time=0.474 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=124 ttl=64 time=0.489 ms&#10;&#10;From 192.168.2.232 icmp_seq=152 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=153 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=154 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=156 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=157 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=166 Destination Host Unreachable&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=175 ttl=64 time=5.96 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=176 ttl=64 time=0.763 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=177 ttl=64 time=0.719 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=178 ttl=64 time=0.911 ms</span><br></pre></td></tr></table></figure>
+<p>再次访问vm也正常了.</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Openstack/">Openstack</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Nova/">Nova</a><a href="/tags/Openstack/">Openstack</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://majian.in/2015/05/23/Nova-evacuate-test/" data-title="Nova evacuate test | Jason Ma&#39;s Tech Blog" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/05/23/GPFS-installation-with-libc-so-6-issue/" title="Troubleshoting - GPFS installation issue with libc.so.6">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Troubleshoting - GPFS installation issue with libc.so.6</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/05/23/GPFS-nodes-change-IP/"  title="GPFS cluster 更改 IP">
+ <strong>下一篇：</strong><br/> 
+ <span>GPFS cluster 更改 IP
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/05/23/Nova-evacuate-test/" data-title="Nova evacuate test" data-url="http://majian.in/2015/05/23/Nova-evacuate-test/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ 
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/GPFS/" title="GPFS">GPFS<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/GPFS/" title="GPFS">GPFS<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Nova/" title="Nova">Nova<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Jason Ma. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/jasonmajian" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		
+		
+		
+		<a href="mailto:jianma@outlook.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-sa/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-sa.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Jason Ma">Jason Ma</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"jasonblog"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fef7ca695a563268850bd2bdeaba14b4' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

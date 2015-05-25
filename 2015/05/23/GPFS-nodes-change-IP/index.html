@@ -1,0 +1,516 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>GPFS cluster 更改 IP | Jason Ma&#39;s Tech Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Jason Ma">
+    
+
+    
+    <meta name="description" content="GPFS cluster所有node直接改了IP，导致cluster无法启动，原来需要严格的步骤来更改GPFS的IP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GPFS cluster 更改 IP">
+<meta property="og:url" content="http://majian.in/2015/05/23/GPFS-nodes-change-IP/index.html">
+<meta property="og:site_name" content="Jason Ma's Tech Blog">
+<meta property="og:description" content="GPFS cluster所有node直接改了IP，导致cluster无法启动，原来需要严格的步骤来更改GPFS的IP">
+<meta property="og:updated_time" content="2015-05-23T09:18:25.111Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GPFS cluster 更改 IP">
+<meta name="twitter:description" content="GPFS cluster所有node直接改了IP，导致cluster无法启动，原来需要严格的步骤来更改GPFS的IP">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    
+<script type="text/javascript">
+#�����İٶ�ͳ�ƴ���
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?2ef7ca695a563268850bd2bdeaba14b4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Jason Ma&#39;s Tech Blog" title="Jason Ma&#39;s Tech Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Jason Ma&#39;s Tech Blog">Jason Ma&#39;s Tech Blog</a></h1>
+				<h2 class="blog-motto">Writing 1000 Words a Day Changes My Life(testing blog)</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/tags">Tags</a></li>
+					
+						<li><a href="/categories">Categories</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 8159045344704375541 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/05/23/GPFS-nodes-change-IP/" title="GPFS cluster 更改 IP" itemprop="url">GPFS cluster 更改 IP</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
+		
+  <p class="article-time">
+    <time datetime="2015-05-22T16:32:41.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			
+		
+		</div>
+		
+		<p>因项目需要，需要把GPFS cluster内的所有节点专用GPFS 网络地址改掉。</p>
+<p>改之前是NIC 是 bond0（bond0是网口em2,em3做了bonding），192.168.10.x</p>
+<p>冲动下先改了IP，GPFS node IP地址 从192.168.10.x 改成10.0.0.x，然后mmshutdown -a</p>
+<p>更改IP后GPFS起不来<br><a id="more"></a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmstartup -a&#10;&#10;&#10;&#10;CCR: failed to connect to node 192.168.10.10:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.12:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.11:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.10:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.12:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.11:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.10:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.12:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.11:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.10:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.12:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.11:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.10:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.12:1191 (sock 4 err 1143)&#10;&#10;CCR: failed to connect to node 192.168.10.11:1191 (sock 4 err 1143)&#10;&#10;get file failed: err 801&#10;&#10;gpfsClusterInit: Unexpected error from ccr fget mmsdrfs.  Return code: 149&#10;&#10;mmstartup: Command failed. Examine previous error messages to determine cause.</span><br></pre></td></tr></table></figure>
+<p>这种情况下试着直接改变daemon-interface 和 admin-interface，仍然failed</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 gpfsconfig]# mmchnode --daemon-interface=gpfs1 --admin-interface=gpfs1 -N gpfs1&#10;&#10;mmchnode: Unable to obtain the GPFS configuration file lock.&#10;&#10;mmchnode: GPFS was unable to obtain a lock from node gpfs1.&#10;&#10;mmchnode: Command failed. Examine previous error messages to determine cause.</span><br></pre></td></tr></table></figure>
+<p>把BOND0拆掉，em2，em3分别给192.168和10.0.的地址，改hosts，保证老IP/HOSTNAME和新IP/hostname都ping通</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# cat /etc/hosts&#10;&#10;127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4&#10;&#10;::1         localhost localhost.localdomain localhost6 localhost6.localdomain6&#10;&#10;192.168.10.10   gpfs1&#10;&#10;192.168.10.11   gpfs2&#10;&#10;192.168.10.12   gpfs3&#10;&#10;10.0.0.10      gpfs-quorum1&#10;&#10;10.0.0.11      gpfs-quorum2&#10;&#10;10.0.0.12      gpfs-quorum3</span><br></pre></td></tr></table></figure>
+<p>再mmchnode改daemon-interface和admin-interface，结果报错</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmchnode --daemon-interface=gpfs-quorum1 --admin-interface=gpfs-quorum1 -N gpfs1&#10;&#10;Thu Jan 15 10:51:29 CST 2015: mmchnode: Processing node gpfs1&#10;&#10;mmchnode: GPFS daemon interfaces cannot be changed when CCR is in effect.&#10;&#10;    To change the interface, consider using:&#10;&#10;        mmchcluster --ccr-disable&#10;&#10;        mmchnode --daemon-interface=gpfs-quorum1 --admin-interface=gpfs-quorum1 -N gpfs1&#10;&#10;        mmchcluster --ccr-enable</span><br></pre></td></tr></table></figure>
+<p>提示在ccr-enable的情况下无法操作，按照提示来，disable ccr</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmchcluster --ccr-disable&#10;&#10;Verifying GPFS is stopped on all nodes ...&#10;&#10;mmchcluster: GPFS cluster configuration servers:&#10;&#10;mmchcluster:   Primary server:    gpfs1&#10;&#10;mmchcluster:   Secondary server:  (none)&#10;&#10;mmchcluster: Propagating the new server information to the rest of the nodes.&#10;&#10;mmchcluster: Command successfully completed&#10;&#10;[root@gpfs1 network-scripts]#</span><br></pre></td></tr></table></figure>
+<p>再次改变daemon-interface和admin-interface<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmchnode --daemon-interface=gpfs-quorum1 --admin-interface=gpfs-quorum1 -N gpfs1&#10;&#10;Thu Jan 15 10:55:06 CST 2015: mmchnode: Processing node gpfs1&#10;&#10;The authenticity of host &#39;gpfs-quorum1 (10.0.0.10)&#39; can&#39;t be established.&#10;&#10;RSA key fingerprint is 95:3d:7f:d0:c2:19:c5:49:0b:23:a6:ed:0b:e4:53:d9.&#10;&#10;Are you sure you want to continue connecting (yes/no)? yes&#10;&#10;Verifying GPFS is stopped on all nodes ...&#10;&#10;&#10;&#10;mmchnode: Propagating the cluster configuration data to all&#10;&#10;  affected nodes.  This is an asynchronous process.</span><br></pre></td></tr></table></figure></p>
+<p>更改成功，继续更改其他node</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmchnode --daemon-interface=gpfs-quorum2 --admin-interface=gpfs-quorum2 -N gpfs2  &#10;&#10;Thu Jan 15 10:56:10 CST 2015: mmchnode: Processing node gpfs2&#10;&#10;The authenticity of host &#39;gpfs-quorum2 (10.0.0.11)&#39; can&#39;t be established.&#10;&#10;RSA key fingerprint is c7:ca:13:d1:10:c9:e1:fc:da:b3:c1:6e:1b:44:37:0b.&#10;&#10;Are you sure you want to continue connecting (yes/no)? yes&#10;&#10;Verifying GPFS is stopped on all nodes ...&#10;&#10;&#10;&#10;mmchnode: Propagating the cluster configuration data to all&#10;&#10;  affected nodes.  This is an asynchronous process.</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmchnode --daemon-interface=gpfs-quorum3 --admin-interface=gpfs-quorum3 -N gpfs3  &#10;&#10;Thu Jan 15 10:56:40 CST 2015: mmchnode: Processing node gpfs3&#10;&#10;The authenticity of host &#39;gpfs-quorum3 (10.0.0.12)&#39; can&#39;t be established.&#10;&#10;RSA key fingerprint is 93:9f:7e:a5:56:ed:4c:65:aa:30:0d:ff:9d:77:4f:3e.&#10;&#10;Are you sure you want to continue connecting (yes/no)? yes&#10;&#10;Verifying GPFS is stopped on all nodes ...&#10;&#10;&#10;&#10;mmchnode: Propagating the cluster configuration data to all&#10;&#10;  affected nodes.  This is an asynchronous process.</span><br></pre></td></tr></table></figure>
+<p>更改成功，验证一下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmlscluster&#10;&#10;&#10;&#10;GPFS cluster information&#10;&#10;========================&#10;&#10;  GPFS cluster name:         GPFS.gpfs1&#10;&#10;  GPFS cluster id:           14862933950719025506&#10;&#10;  GPFS UID domain:           GPFS.gpfs1&#10;&#10;  Remote shell command:      /usr/bin/ssh&#10;&#10;  Remote file copy command:  /usr/bin/scp&#10;&#10;  Repository type:           server-based&#10;&#10;&#10;&#10;GPFS cluster configuration servers:&#10;&#10;-----------------------------------&#10;&#10;  Primary server:    gpfs-quorum1&#10;&#10;  Secondary server:  (none)&#10;&#10;&#10;&#10; Node  Daemon node name  IP address  Admin node name  Designation&#10;&#10;------------------------------------------------------------------&#10;&#10;   1   gpfs-quorum1      10.0.0.10  gpfs-quorum1     quorum-manager&#10;&#10;   2   gpfs-quorum2      10.0.0.11  gpfs-quorum2     quorum-manager&#10;&#10;   3   gpfs-quorum3      10.0.0.12  gpfs-quorum3     quorum-manager</span><br></pre></td></tr></table></figure>
+<p>cluster 没问题，重新enable ccr</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmchcluster --ccr-enable&#10;&#10;mmchcluster: Command successfully completed&#10;&#10;mmchcluster: Propagating the cluster configuration data to all&#10;&#10;  affected nodes.  This is an asynchronous process.</span><br></pre></td></tr></table></figure>
+<p>重新改为bond0</p>
+<p>再启动GPFS</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmstartup -a&#10;&#10;Thu Jan 15 11:04:08 CST 2015: mmstartup: Starting GPFS ...</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# mmgetstate -aLs&#10;&#10;&#10;&#10; Node number  Node name       Quorum  Nodes up  Total nodes  GPFS state  Remarks    &#10;&#10;------------------------------------------------------------------------------------&#10;&#10;       1      gpfs-quorum1       2        3          3       active      quorum node&#10;&#10;       2      gpfs-quorum2       2        3          3       active      quorum node&#10;&#10;       3      gpfs-quorum3       2        3          3       active      quorum node&#10;&#10;&#10;&#10; Summary information &#10;&#10;---------------------&#10;&#10;Number of nodes defined in the cluster:            3&#10;&#10;Number of local nodes active in the cluster:       3&#10;&#10;Number of remote nodes joined in this cluster:     0&#10;&#10;Number of quorum nodes defined in the cluster:     3&#10;&#10;Number of quorum nodes active in the cluster:      3&#10;&#10;Quorum = 2, Quorum achieved</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# df -h&#10;&#10;Filesystem                          Size  Used Avail Use% Mounted on&#10;&#10;/dev/mapper/vg_opowergpfs1-lv_root   50G  4.0G   43G   9% /&#10;&#10;tmpfs                                64G   72K   64G   1% /dev/shm&#10;&#10;/dev/sda1                           485M   39M  421M   9% /boot&#10;&#10;/dev/mapper/vg_opowergpfs1-lv_home  863G  200M  819G   1% /home&#10;&#10;/dev/gpfs                            37T  2.7G   37T   1% /gpfs</span><br></pre></td></tr></table></figure>
+<p>更改成功。<br>下面是IBM 官方说明.</p>
+<p><a href="http://www-01.ibm.com/support/knowledgecenter/SSFKCN_3.5.0/com.ibm.cluster.gpfs.v3r5.gpfs200.doc/bl1adv_chnamip.htm" target="_blank" rel="external">http://www-01.ibm.com/support/knowledgecenter/SSFKCN_3.5.0/com.ibm.cluster.gpfs.v3r5.gpfs200.doc/bl1adv_chnamip.htm</a></p>
+<p>Changing IP addresses and host names</p>
+<p>GPFS? assumes that IP addresses and host names remain constant. In the rare event that such a change becomes necessary or is inadvertently introduced by reinstalling a node with a disk image from a different node for example, follow the steps in this topic.</p>
+<p>If all of the nodes in the cluster are affected and all the conditions in step 2 below are met:<br>Use the mmshutdown -a command to stop GPFS on all nodes.<br>Using the documented procedures for the operating system, add the new host names or IP addressees, but do not remove the old ones yet. This can be achieved, for example, by creating temporary alias entries in /etc/hosts. Avoid rebooting the nodes until the mmchnode command in step 3 is executed successfully. If any of these conditions cannot be met, utilize the alternate procedure described below.<br>Use mmchnode —daemon-interface and —admin-interface to update the GPFS configuration information.<br>If the IP addresses over which the subnet attribute is defined are changed, you need to update your configuration by using the mmchconfig command with the subnets attribute.<br>Start GPFS on all nodes with mmstartup -a.<br>Remove the unneeded old host names and IP addresses.<br>If only a subset of the nodes are affected, it may be easier to make the changes using these steps:<br>Before any of the host names or IP addresses are changed:<br>Use the mmshutdown command to stop GPFS on all affected nodes.<br>If the host names or IP addresses of the primary or secondary GPFS cluster configuration server nodes must change, use themmchcluster command to specify another node to serve as the primary or secondary GPFS cluster configuration server.<br>If the host names or IP addresses of an NSD server node must change, temporarily remove the node from being a server with themmchnsd command. Then, after the node has been added back to the cluster, use the mmchnsd command to change the NSDs to their original configuration. Use the mmlsnsd command to obtain the NSD server node names.<br>Use the mmdelnode command to delete all affected nodes from the GPFS cluster.<br>Change the node names and IP addresses using the documented procedures for the operating system.<br>If the IP addresses over which the subnet attribute is defined are changed, you need to update your configuration by using the mmchconfig command with the subnets attribute.<br>Issue the mmaddnode command to restore the nodes to the GPFS cluster.<br>If necessary, use the mmchcluster and mmchnsd commands to restore the original configuration and the NSD servers.<br><a href="http://terry2magic.blog.163.com/blog/static/692590572013728115625955/" target="_blank" rel="external">http://terry2magic.blog.163.com/blog/static/692590572013728115625955/</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/GPFS/">GPFS</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/GPFS/">GPFS</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://majian.in/2015/05/23/GPFS-nodes-change-IP/" data-title="GPFS cluster 更改 IP | Jason Ma&#39;s Tech Blog" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/05/23/Nova-evacuate-test/" title="Nova evacuate test">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Nova evacuate test</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/05/23/installation-of-GPFS-cluster/"  title="一次搭建GPFS FPO cluster的记录">
+ <strong>下一篇：</strong><br/> 
+ <span>一次搭建GPFS FPO cluster的记录
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/05/23/GPFS-nodes-change-IP/" data-title="GPFS cluster 更改 IP" data-url="http://majian.in/2015/05/23/GPFS-nodes-change-IP/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ 
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/GPFS/" title="GPFS">GPFS<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/GPFS/" title="GPFS">GPFS<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Nova/" title="Nova">Nova<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Jason Ma. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/jasonmajian" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		
+		
+		
+		<a href="mailto:jianma@outlook.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-sa/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-sa.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Jason Ma">Jason Ma</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"jasonblog"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fef7ca695a563268850bd2bdeaba14b4' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
