@@ -2,6 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://majian.in/2015/05/23/Nova-evacuate-test/</loc>
+    <lastmod>2015-05-26T15:23:01.731Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
+    <lastmod>2015-05-26T15:20:39.463Z</lastmod>
+  </url>
+  
+  <url>
     <loc>http://majian.in/2015/05/23/installation-of-GPFS-cluster/</loc>
     <lastmod>2015-05-26T15:17:04.863Z</lastmod>
   </url>
@@ -22,11 +32,6 @@
   </url>
   
   <url>
-    <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
-    <lastmod>2015-05-24T12:46:30.858Z</lastmod>
-  </url>
-  
-  <url>
     <loc>http://majian.in/2015/05/23/first-post/</loc>
     <lastmod>2015-05-23T10:07:39.213Z</lastmod>
   </url>
@@ -34,11 +39,6 @@
   <url>
     <loc>http://majian.in/2015/05/23/GPFS-nodes-change-IP/</loc>
     <lastmod>2015-05-23T09:18:25.111Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/2015/05/23/Nova-evacuate-test/</loc>
-    <lastmod>2015-05-23T09:05:12.517Z</lastmod>
   </url>
   
   <url>

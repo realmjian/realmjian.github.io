@@ -11,19 +11,19 @@
     
 
     
-    <meta name="description" content="测试一下nova evacuate功能
-要求是vm是active或者sotpped状态，nova-compute是down得状态">
+    <meta name="description" content="测试一下Nova evacuate功能
+要求是vm是active或者sotpped状态，openstack-nova-compute是down得状态">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Nova evacuate test">
 <meta property="og:url" content="http://majian.in/2015/05/23/Nova-evacuate-test/index.html">
 <meta property="og:site_name" content="Jason Ma's Tech Blog">
-<meta property="og:description" content="测试一下nova evacuate功能
-要求是vm是active或者sotpped状态，nova-compute是down得状态">
-<meta property="og:updated_time" content="2015-05-23T09:05:12.517Z">
+<meta property="og:description" content="测试一下Nova evacuate功能
+要求是vm是active或者sotpped状态，openstack-nova-compute是down得状态">
+<meta property="og:updated_time" content="2015-05-26T15:23:01.731Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Nova evacuate test">
-<meta name="twitter:description" content="测试一下nova evacuate功能
-要求是vm是active或者sotpped状态，nova-compute是down得状态">
+<meta name="twitter:description" content="测试一下Nova evacuate功能
+要求是vm是active或者sotpped状态，openstack-nova-compute是down得状态">
 
     
     <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
@@ -127,17 +127,17 @@ var _hmt = _hmt || [];
 		
 		</div>
 		
-		<p>测试一下nova evacuate功能</p>
-<p>要求是vm是active或者sotpped状态，nova-compute是down得状态</p>
+		<p>测试一下<code>Nova</code> evacuate功能</p>
+<p>要求是vm是active或者sotpped状态，<code>openstack-nova-compute</code>是down得状态</p>
 <a id="more"></a>
-<p>确认一下测试vm所在Nova node的状态是down的</p>
+<p>确认一下测试vm所在<code>Nova</code> node的状态是down的</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;nova-compute     compute96                            nova             enabled    XXX   2015-03-24 08:15:13</span><br></pre></td></tr></table></figure>
-<p>测试开始，并指定目标Nova node为 compute97</p>
+<p>测试开始，并指定目标<code>Nova</code> node为 compute97</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova evacuate --on-shared-storage afc27839-08ac-493d-b9f9-654537edf6dc compute97</span><br></pre></td></tr></table></figure>
 <p>检查 vm状态</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova list |grep afc27839-08ac-493d-b9f9-654537edf6dc&#10;&#10;| afc27839-08ac-493d-b9f9-654537edf6dc | mjrebuild-test               | SHUTOFF | None       | Shutdown    | subnet-01=192.168.3.129               |&#10;&#10;[root@SDE-Controller auto_script]# nova show afc27839-08ac-493d-b9f9-654537edf6dc&#10;&#10;+--------------------------------------+-------------------------------------------------------------------------------------------+&#10;&#10;| Property                             | Value                                                                                     |&#10;&#10;+--------------------------------------+-------------------------------------------------------------------------------------------+&#10;&#10;| status                               | SHUTOFF                                                                                   |&#10;&#10;| updated                              | 2015-03-24T08:17:27Z                                                                      |&#10;&#10;| OS-EXT-STS:task_state                | None                                                                                      |&#10;&#10;| OS-EXT-SRV-ATTR:host                 | compute97                                                                                 |&#10;&#10;| key_name                             | crlitkey                                                                                  |&#10;&#10;| image                                | ubuntu1404-x86_64 (d9c65f47-c688-4132-8e65-6029f3698de8)                                  |&#10;&#10;| hostId                               | 67e2041574276e08e131a3b8263179fcac9ae352dab8e56a497d39ef                                  |&#10;&#10;| OS-EXT-STS:vm_state                  | stopped                                                                                   |&#10;&#10;| OS-EXT-SRV-ATTR:instance_name        | instance-00000350                                                                         |&#10;&#10;| OS-SRV-USG:launched_at               | 2015-03-24T08:18:14.000000                                                                |&#10;&#10;| OS-EXT-SRV-ATTR:hypervisor_hostname  | compute97                                                                                 |&#10;&#10;| flavor                               | flavor-27 (27)                                                                            |&#10;&#10;| id                                   | afc27839-08ac-493d-b9f9-654537edf6dc                                                      |&#10;&#10;| security_groups                      | [&#123;u&#39;name&#39;: u&#39;default&#39;&#125;]                                                                   |&#10;&#10;| OS-SRV-USG:terminated_at             | None                                                                                      |&#10;&#10;| user_id                              | d899255073f5451ca99cf91285de60b3                                                          |&#10;&#10;| name                                 | mjrebuild-test                                                                            |&#10;&#10;| created                              | 2015-03-24T07:42:13Z                                                                      |&#10;&#10;| tenant_id                            | 46d35d26975b4430aa12d77aae8b6e6e                                                          |&#10;&#10;| subnet-01 network                    | 192.168.3.129                                                                             |&#10;&#10;| OS-DCF:diskConfig                    | MANUAL                                                                                    |&#10;&#10;| metadata                             | &#123;u&#39;104group&#39;: u&#39;3&#39;, u&#39;requester&#39;: u&#39;majian@cn.ibm.com&#39;, u&#39;creator&#39;: u&#39;majian@cn.ibm.com&#39;&#125; |&#10;&#10;| os-extended-volumes:volumes_attached | [&#123;u&#39;id&#39;: u&#39;4264520f-30b8-4187-96b3-90002445a59f&#39;&#125;]                                        |&#10;&#10;| accessIPv4                           |                                                                                           |&#10;&#10;| accessIPv6                           |                                                                                           |&#10;&#10;| OS-EXT-STS:power_state               | 4                                                                                         |&#10;&#10;| OS-EXT-AZ:availability_zone          | nova                                                                                      |&#10;&#10;| config_drive                         |                                                                                           |&#10;&#10;+--------------------------------------+-------------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
 <p>发现host变为了compute97，vm仍让是stopped状态</p>
-<p>再测试一下vm在active状态，把compute97的nova-compute service停掉，compute96的nova-compute service起来</p>
+<p>再测试一下vm在active状态，把compute97的<code>openstack-nova-compute</code> service停掉，compute96的<code>openstack-nova-compute</code> service起来</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;nova-compute     compute96                            nova             enabled    :-)   2015-03-24 08:20:26&#10;&#10;nova-compute     compute97                            nova             enabled    XXX   2015-03-24 08:19:34</span><br></pre></td></tr></table></figure>
 <p>再测evacuate</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova evacuate --on-shared-storage afc27839-08ac-493d-b9f9-654537edf6dc compute96</span><br></pre></td></tr></table></figure>
