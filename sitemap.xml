@@ -2,8 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://majian.in/2015/05/23/installation-of-GPFS-cluster/</loc>
+    <lastmod>2015-05-26T15:17:04.863Z</lastmod>
+  </url>
+  
+  <url>
     <loc>http://majian.in/2015/05/26/Cinder-failed-over-GPFS/</loc>
-    <lastmod>2015-05-26T15:08:32.246Z</lastmod>
+    <lastmod>2015-05-26T15:12:58.858Z</lastmod>
   </url>
   
   <url>
@@ -19,11 +24,6 @@
   <url>
     <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
     <lastmod>2015-05-24T12:46:30.858Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/2015/05/23/installation-of-GPFS-cluster/</loc>
-    <lastmod>2015-05-23T10:27:51.087Z</lastmod>
   </url>
   
   <url>
