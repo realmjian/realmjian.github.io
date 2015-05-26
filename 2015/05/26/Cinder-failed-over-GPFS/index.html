@@ -4,22 +4,29 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>Jason Ma&#39;s Tech Blog</title>
+    <title>Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend) | Jason Ma&#39;s Tech Blog</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Jason Ma">
     
 
     
-    <meta name="description" content="work record#��վ����">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Jason Ma's Tech Blog">
-<meta property="og:url" content="http://majian.in/index.html">
+    <meta name="description" content="我们的’Openstack’环境在用’GPFS’做后台的统一存储，所有的虚机、volume和images都用相应的driver来使用’GPFS’.（我会在另外一篇里介绍怎么用’GPFS’与 ‘Nova’’Cinder’’Glance’集成)。
+在给另外一个项目搭建同样的环境时，仍然使用’GPFS’做为’Cinder’的后端存储，但是同样的配置好了后，在创建volume时，一直报错，错误如下.
+1&amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)">
+<meta property="og:url" content="http://majian.in/2015/05/26/Cinder-failed-over-GPFS/index.html">
 <meta property="og:site_name" content="Jason Ma's Tech Blog">
-<meta property="og:description" content="work record#��վ����">
+<meta property="og:description" content="我们的’Openstack’环境在用’GPFS’做后台的统一存储，所有的虚机、volume和images都用相应的driver来使用’GPFS’.（我会在另外一篇里介绍怎么用’GPFS’与 ‘Nova’’Cinder’’Glance’集成)。
+在给另外一个项目搭建同样的环境时，仍然使用’GPFS’做为’Cinder’的后端存储，但是同样的配置好了后，在创建volume时，一直报错，错误如下.
+1&amp;">
+<meta property="og:updated_time" content="2015-05-26T14:52:49.635Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Jason Ma's Tech Blog">
-<meta name="twitter:description" content="work record#��վ����">
+<meta name="twitter:title" content="Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)">
+<meta name="twitter:description" content="我们的’Openstack’环境在用’GPFS’做后台的统一存储，所有的虚机、volume和images都用相应的driver来使用’GPFS’.（我会在另外一篇里介绍怎么用’GPFS’与 ‘Nova’’Cinder’’Glance’集成)。
+在给另外一个项目搭建同样的环境时，仍然使用’GPFS’做为’Cinder’的后端存储，但是同样的配置好了后，在创建volume时，一直报错，错误如下.
+1&amp;">
 
     
     <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
@@ -97,12 +104,10 @@ var _hmt = _hmt || [];
 </div>
     </header>
     <div id="container">
-      <div id="main">
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
   <h1 itemprop="name">
     
       <a href="/2015/05/26/Cinder-failed-over-GPFS/" title="Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)" itemprop="url">Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)</a>
@@ -116,9 +121,16 @@ var _hmt = _hmt || [];
     
   </p>
 </header>
-    <div class="article-content">
-        
-        <p>我们的’Openstack’环境在用’GPFS’做后台的统一存储，所有的虚机、volume和images都用相应的driver来使用’GPFS’.（我会在另外一篇里介绍怎么用’GPFS’与 ‘Nova’’Cinder’’Glance’集成)。</p>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#解决办法"><span class="toc-number">1.</span> <span class="toc-text">解决办法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Linux_ephemeral_port_range"><span class="toc-number">1.1.</span> <span class="toc-text">Linux ephemeral port range</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#GPFS_port_usage"><span class="toc-number">1.2.</span> <span class="toc-text">GPFS port usage</span></a></li></ol></li></ol>
+		
+		</div>
+		
+		<p>我们的’Openstack’环境在用’GPFS’做后台的统一存储，所有的虚机、volume和images都用相应的driver来使用’GPFS’.（我会在另外一篇里介绍怎么用’GPFS’与 ‘Nova’’Cinder’’Glance’集成)。</p>
 <p>在给另外一个项目搭建同样的环境时，仍然使用’GPFS’做为’Cinder’的后端存储，但是同样的配置好了后，在创建volume时，一直报错，错误如下.</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;2015-01-19 15:46:01.052 26559 INFO cinder.volume.manager [req-b87f3efd-22c6-4951-a361-853e5d951aca - - - - -] CN-FBD7FF7 Starting volume driver GPFSDriver (1.1.0)&#10;&#10;2015-01-19 15:51:32.270 26559 ERROR cinder.volume.drivers.ibm.gpfs [req-b87f3efd-22c6-4951-a361-853e5d951aca - - - - -] CN-4E9F530 Invalid storage pool fpo specificed.&#10;&#10;2015-01-19 15:51:32.272 26559 ERROR cinder.volume.manager [req-b87f3efd-22c6-4951-a361-853e5d951aca - - - - -] CN-18C9F33 Error encountered during initialization of driver: GPFSDriver&#10;&#10;2015-01-19 15:51:32.273 26559 ERROR cinder.volume.manager [req-b87f3efd-22c6-4951-a361-853e5d951aca - - - - -] CN-1F54842 Bad or unexpected response from the storage volume backend API: CN-4E9F530 Invalid storage pool fpo specificed.&#10;&#10;2015-01-19 15:51:32.273 26559 TRACE cinder.volume.manager Traceback (most recent call last):&#10;&#10;2015-01-19 15:51:32.273 26559 TRACE cinder.volume.manager   File &#34;/usr/lib/python2.6/site-packages/cinder/volume/manager.py&#34;, line 242, in init_host&#10;&#10;2015-01-19 15:51:32.273 26559 TRACE cinder.volume.manager     self.driver.do_setup(ctxt)&#10;&#10;2015-01-19 15:51:32.273 26559 TRACE cinder.volume.manager   File &#34;/usr/lib/python2.6/site-packages/cinder/volume/drivers/ibm/gpfs.py&#34;, line 340, in do_setup&#10;&#10;2015-01-19 15:51:32.273 26559 TRACE cinder.volume.manager     raise exception.VolumeBackendAPIException(data=msg)&#10;&#10;2015-01-19 15:51:32.273 26559 TRACE cinder.volume.manager VolumeBackendAPIException: CN-1F54842 Bad or unexpected response from the storage volume backend API: CN-4E9F530 Invalid storage pool fpo specificed.</span><br></pre></td></tr></table></figure>
 <p>从log可以看出,’Cinder’的’GPFS’ driver 无法识别在 ‘cinder.conf’里配置的 ‘GPFS’的storage pool</p>
@@ -164,14 +176,9 @@ var _hmt = _hmt || [];
 <p>See the GPFS: Problem Determination Guide for further information.</p>
 <p>Is there an administrator interface to query the daemon and have it report its port number?    Yes; run this command:<br>mmlsconfig tscTcpPort<br>Is the service/port registered with the Internet Assigned Numbers Authority (IANA)?    Yes<br>gpfs 1191/tcp General Parallel File System gpfs 1191/udp General Parallel File System # Dave Craft <a href="&#109;&#97;&#x69;&#x6c;&#116;&#111;&#58;&#x67;&#112;&#102;&#x73;&#x40;&#105;&#98;&#109;&#46;&#x63;&#x6f;&#x6d;">&#x67;&#112;&#102;&#x73;&#x40;&#105;&#98;&#109;&#46;&#x63;&#x6f;&#x6d;</a> November 2004<br>Note: Ports configured for gpfsClusterRemoteShellCommand (for example, ssh) and ICMP (ping) also must be unblocked in the firewall for GPFS to function properly</p>
 <hr>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
+  
+	</div>
+		<footer class="article-footer clearfix">
 <div class="article-catetags">
 
 <div class="article-categories">
@@ -189,395 +196,47 @@ var _hmt = _hmt || [];
 
 
 
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://majian.in/2015/05/26/Cinder-failed-over-GPFS/" data-title="Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend) | Jason Ma&#39;s Tech Blog" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
 
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/26/Cinder-failed-over-GPFS/#comments" class="ds-thread-count comments-count-link" data-thread-key="2015/05/26/Cinder-failed-over-GPFS/" data-count-type="comments">&nbsp;</a>
-	
-</div>
 
 </footer>
 
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/23/to-do/" title="to do" itemprop="url">to do</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-23T11:11:29.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>to do:<br>慢慢添加以下内容</p>
-<h4 id="troubleshoting:_Cinder_failed_to_create_volume_over_GPFS">troubleshoting:  Cinder failed to create volume over GPFS</h4><h4 id="installing_GPFS_nodes_with_Saltstack">installing GPFS nodes with Saltstack</h4><h4 id="adding_IBM_V7000_voluem_to_GPFS_nodes_and_config_multipath">adding IBM V7000 voluem to GPFS nodes and config multipath</h4><h4 id="Openstack_issue_record">Openstack issue record</h4><h4 id="直接在neutron节点上删除floatingip">直接在neutron节点上删除floatingip</h4>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2015/05/23/to-do/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-</div>
-
-
-
-
-<div class="comments-count">
+   	       
+	</article>
 	
-	  	<span></span>
-		<a href="/2015/05/23/to-do/#comments" class="ds-thread-count comments-count-link" data-thread-key="2015/05/23/to-do/" data-count-type="comments">&nbsp;</a>
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2015/05/23/to-do/"  title="to do">
+ <strong>下一篇：</strong><br/> 
+ <span>to do
+</span>
+</a>
+</div>
+
+</nav>
+
 	
-</div>
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/05/26/Cinder-failed-over-GPFS/" data-title="Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)" data-url="http://majian.in/2015/05/26/Cinder-failed-over-GPFS/"></div>
+</section>
 
-</footer>
 
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/23/GPFS-installation-with-libc-so-6-issue/" title="Troubleshoting - GPFS installation issue with libc.so.6" itemprop="url">Troubleshoting - GPFS installation issue with libc.so.6</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-23T10:12:45.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>安装GPFS 4.1.0.3是碰到libc.so.6 dependencies问题，但是64位系统里已经有64位的glibc了……<br>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2015/05/23/GPFS-installation-with-libc-so-6-issue/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/GPFS/">GPFS</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/GPFS/">GPFS</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/23/GPFS-installation-with-libc-so-6-issue/#comments" class="ds-thread-count comments-count-link" data-thread-key="2015/05/23/GPFS-installation-with-libc-so-6-issue/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/23/Nova-evacuate-test/" title="Nova evacuate test" itemprop="url">Nova evacuate test</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-23T04:29:43.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>测试一下nova evacuate功能</p>
-<p>要求是vm是active或者sotpped状态，nova-compute是down得状态</p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2015/05/23/Nova-evacuate-test/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/Openstack/">Openstack</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Nova/">Nova</a><a href="/tags/Openstack/">Openstack</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/23/Nova-evacuate-test/#comments" class="ds-thread-count comments-count-link" data-thread-key="2015/05/23/Nova-evacuate-test/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/23/GPFS-nodes-change-IP/" title="GPFS cluster 更改 IP" itemprop="url">GPFS cluster 更改 IP</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-22T16:32:41.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>因项目需要，需要把GPFS cluster内的所有节点专用GPFS 网络地址改掉。</p>
-<p>改之前是NIC 是 bond0（bond0是网口em2,em3做了bonding），192.168.10.x</p>
-<p>冲动下先改了IP，GPFS node IP地址 从192.168.10.x 改成10.0.0.x，然后mmshutdown -a</p>
-<p>更改IP后GPFS起不来<br>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2015/05/23/GPFS-nodes-change-IP/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/GPFS/">GPFS</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/GPFS/">GPFS</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/23/GPFS-nodes-change-IP/#comments" class="ds-thread-count comments-count-link" data-thread-key="2015/05/23/GPFS-nodes-change-IP/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/23/installation-of-GPFS-cluster/" title="一次搭建GPFS FPO cluster的记录" itemprop="url">一次搭建GPFS FPO cluster的记录</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-22T16:30:00.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>三台主机，每台14块盘搭建一个GPFS FPO 集群<br>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2015/05/23/installation-of-GPFS-cluster/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/GPFS/">GPFS</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/GPFS/">GPFS</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/23/installation-of-GPFS-cluster/#comments" class="ds-thread-count comments-count-link" data-thread-key="2015/05/23/installation-of-GPFS-cluster/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/05/23/first-post/" title="First post" itemprop="url">First post</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
-		
-  <p class="article-time">
-    <time datetime="2015-05-22T16:00:00.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>习惯用为知笔记，做一些工作记录，索性搭了blog，慢慢把为知笔记上的内容贴过来。为知笔记上内容记录的比较随意，主要是Openstack和自动化运维相关。迁过来的工作量很大啊，需要重新整理内容，慢慢来吧。</p>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-	  	<span></span>
-		<a href="/2015/05/23/first-post/#comments" class="ds-thread-count comments-count-link" data-thread-key="2015/05/23/first-post/" data-count-type="comments">&nbsp;</a>
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-
-</div>
+</div>  
       <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#解决办法"><span class="toc-number">1.</span> <span class="toc-text">解决办法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Linux_ephemeral_port_range"><span class="toc-number">1.1.</span> <span class="toc-text">Linux ephemeral port range</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#GPFS_port_usage"><span class="toc-number">1.2.</span> <span class="toc-text">GPFS port usage</span></a></li></ol></li></ol>
+ 
+  </div>
 
 <div id="asidepart">
 <div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
@@ -731,12 +390,69 @@ $(document).ready(function(){
       m.removeClass('moveMain');
       a.css('display', 'block').removeClass('fadeOut');
       o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
         
     }
   });
 });
 </script>
 
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
 
 
 
@@ -818,4 +534,4 @@ document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3
 <!-- Tiny_search End -->
 
   </body>
- </html>
+</html>
