@@ -2,6 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://majian.in/2015/05/27/delete-floatingip-on-neutron-node/</loc>
+    <lastmod>2015-05-27T15:17:51.328Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/05/23/installation-of-GPFS-cluster/</loc>
+    <lastmod>2015-05-26T15:24:50.031Z</lastmod>
+  </url>
+  
+  <url>
     <loc>http://majian.in/2015/05/23/Nova-evacuate-test/</loc>
     <lastmod>2015-05-26T15:23:01.731Z</lastmod>
   </url>
@@ -9,11 +19,6 @@
   <url>
     <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
     <lastmod>2015-05-26T15:20:39.463Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/2015/05/23/installation-of-GPFS-cluster/</loc>
-    <lastmod>2015-05-26T15:17:04.863Z</lastmod>
   </url>
   
   <url>

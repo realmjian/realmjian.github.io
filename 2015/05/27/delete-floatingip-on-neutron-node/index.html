@@ -4,26 +4,26 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>Nova evacuate test | Jason Ma&#39;s Tech Blog</title>
+    <title>在Neutron节点上用namespace删除floating IP | Jason Ma&#39;s Tech Blog</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Jason Ma">
     
 
     
-    <meta name="description" content="测试一下Nova evacuate功能
-要求是vm是active或者sotpped状态，openstack-nova-compute是down得状态">
+    <meta name="description" content="有两个Openstack cluster,A和B每个cluster都有单独的Neutron 节点，连接不同的物理交换机网络使用Vlan模式，cluster里的VM使用floating IP
+那么问题来了，cluster A的controller down了，数据库也没了，现在要把Cluster A中的Nova节点上的vm手动迁移到Cluster B上.迁移没有问题，迁移之后在Cluster B上对">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Nova evacuate test">
-<meta property="og:url" content="http://majian.in/2015/05/23/Nova-evacuate-test/index.html">
+<meta property="og:title" content="在Neutron节点上用namespace删除floating IP">
+<meta property="og:url" content="http://majian.in/2015/05/27/delete-floatingip-on-neutron-node/index.html">
 <meta property="og:site_name" content="Jason Ma's Tech Blog">
-<meta property="og:description" content="测试一下Nova evacuate功能
-要求是vm是active或者sotpped状态，openstack-nova-compute是down得状态">
-<meta property="og:updated_time" content="2015-05-26T15:23:01.731Z">
+<meta property="og:description" content="有两个Openstack cluster,A和B每个cluster都有单独的Neutron 节点，连接不同的物理交换机网络使用Vlan模式，cluster里的VM使用floating IP
+那么问题来了，cluster A的controller down了，数据库也没了，现在要把Cluster A中的Nova节点上的vm手动迁移到Cluster B上.迁移没有问题，迁移之后在Cluster B上对">
+<meta property="og:updated_time" content="2015-05-27T15:17:51.328Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Nova evacuate test">
-<meta name="twitter:description" content="测试一下Nova evacuate功能
-要求是vm是active或者sotpped状态，openstack-nova-compute是down得状态">
+<meta name="twitter:title" content="在Neutron节点上用namespace删除floating IP">
+<meta name="twitter:description" content="有两个Openstack cluster,A和B每个cluster都有单独的Neutron 节点，连接不同的物理交换机网络使用Vlan模式，cluster里的VM使用floating IP
+那么问题来了，cluster A的controller down了，数据库也没了，现在要把Cluster A中的Nova节点上的vm手动迁移到Cluster B上.迁移没有问题，迁移之后在Cluster B上对">
 
     
     <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
@@ -107,14 +107,14 @@ var _hmt = _hmt || [];
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/05/23/Nova-evacuate-test/" title="Nova evacuate test" itemprop="url">Nova evacuate test</a>
+      <a href="/2015/05/27/delete-floatingip-on-neutron-node/" title="在Neutron节点上用namespace删除floating IP" itemprop="url">在Neutron节点上用namespace删除floating IP</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
 		
   <p class="article-time">
-    <time datetime="2015-05-23T04:29:43.000Z" itemprop="datePublished"> 发表于 2015-05-23</time>
+    <time datetime="2015-05-27T14:48:23.000Z" itemprop="datePublished"> 发表于 2015-05-27</time>
     
   </p>
 </header>
@@ -127,25 +127,19 @@ var _hmt = _hmt || [];
 		
 		</div>
 		
-		<p>测试一下<code>Nova</code> evacuate功能</p>
-<p>要求是vm是active或者sotpped状态，<code>openstack-nova-compute</code>是down得状态</p>
-<a id="more"></a>
-<p>确认一下测试vm所在<code>Nova</code> node的状态是down的</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;nova-compute     compute96                            nova             enabled    XXX   2015-03-24 08:15:13</span><br></pre></td></tr></table></figure>
-<p>测试开始，并指定目标<code>Nova</code> node为 compute97</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova evacuate --on-shared-storage afc27839-08ac-493d-b9f9-654537edf6dc compute97</span><br></pre></td></tr></table></figure>
-<p>检查 vm状态</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova list |grep afc27839-08ac-493d-b9f9-654537edf6dc&#10;&#10;| afc27839-08ac-493d-b9f9-654537edf6dc | mjrebuild-test               | SHUTOFF | None       | Shutdown    | subnet-01=192.168.3.129               |&#10;&#10;[root@SDE-Controller auto_script]# nova show afc27839-08ac-493d-b9f9-654537edf6dc&#10;&#10;+--------------------------------------+-------------------------------------------------------------------------------------------+&#10;&#10;| Property                             | Value                                                                                     |&#10;&#10;+--------------------------------------+-------------------------------------------------------------------------------------------+&#10;&#10;| status                               | SHUTOFF                                                                                   |&#10;&#10;| updated                              | 2015-03-24T08:17:27Z                                                                      |&#10;&#10;| OS-EXT-STS:task_state                | None                                                                                      |&#10;&#10;| OS-EXT-SRV-ATTR:host                 | compute97                                                                                 |&#10;&#10;| key_name                             | crlitkey                                                                                  |&#10;&#10;| image                                | ubuntu1404-x86_64 (d9c65f47-c688-4132-8e65-6029f3698de8)                                  |&#10;&#10;| hostId                               | 67e2041574276e08e131a3b8263179fcac9ae352dab8e56a497d39ef                                  |&#10;&#10;| OS-EXT-STS:vm_state                  | stopped                                                                                   |&#10;&#10;| OS-EXT-SRV-ATTR:instance_name        | instance-00000350                                                                         |&#10;&#10;| OS-SRV-USG:launched_at               | 2015-03-24T08:18:14.000000                                                                |&#10;&#10;| OS-EXT-SRV-ATTR:hypervisor_hostname  | compute97                                                                                 |&#10;&#10;| flavor                               | flavor-27 (27)                                                                            |&#10;&#10;| id                                   | afc27839-08ac-493d-b9f9-654537edf6dc                                                      |&#10;&#10;| security_groups                      | [&#123;u&#39;name&#39;: u&#39;default&#39;&#125;]                                                                   |&#10;&#10;| OS-SRV-USG:terminated_at             | None                                                                                      |&#10;&#10;| user_id                              | d899255073f5451ca99cf91285de60b3                                                          |&#10;&#10;| name                                 | mjrebuild-test                                                                            |&#10;&#10;| created                              | 2015-03-24T07:42:13Z                                                                      |&#10;&#10;| tenant_id                            | 46d35d26975b4430aa12d77aae8b6e6e                                                          |&#10;&#10;| subnet-01 network                    | 192.168.3.129                                                                             |&#10;&#10;| OS-DCF:diskConfig                    | MANUAL                                                                                    |&#10;&#10;| metadata                             | &#123;u&#39;104group&#39;: u&#39;3&#39;, u&#39;requester&#39;: u&#39;majian@cn.ibm.com&#39;, u&#39;creator&#39;: u&#39;majian@cn.ibm.com&#39;&#125; |&#10;&#10;| os-extended-volumes:volumes_attached | [&#123;u&#39;id&#39;: u&#39;4264520f-30b8-4187-96b3-90002445a59f&#39;&#125;]                                        |&#10;&#10;| accessIPv4                           |                                                                                           |&#10;&#10;| accessIPv6                           |                                                                                           |&#10;&#10;| OS-EXT-STS:power_state               | 4                                                                                         |&#10;&#10;| OS-EXT-AZ:availability_zone          | nova                                                                                      |&#10;&#10;| config_drive                         |                                                                                           |&#10;&#10;+--------------------------------------+-------------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
-<p>发现host变为了compute97，vm仍让是stopped状态</p>
-<p>再测试一下vm在active状态，把compute97的<code>openstack-nova-compute</code> service停掉，compute96的<code>openstack-nova-compute</code> service起来</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;nova-compute     compute96                            nova             enabled    :-)   2015-03-24 08:20:26&#10;&#10;nova-compute     compute97                            nova             enabled    XXX   2015-03-24 08:19:34</span><br></pre></td></tr></table></figure>
-<p>再测evacuate</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova evacuate --on-shared-storage afc27839-08ac-493d-b9f9-654537edf6dc compute96</span><br></pre></td></tr></table></figure>
-<p>发现ip断掉了，vm还是active状态，vm变成了在compute96上,ping值很高</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;64 bytes from 192.168.3.129: icmp_seq=23 ttl=64 time=1.42 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=24 ttl=64 time=0.672 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=25 ttl=64 time=0.907 ms&#10;&#10;From 192.168.2.232 icmp_seq=53 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=54 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=55 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=69 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=82 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=83 Destination Host Unreachable&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=26 ttl=64 time=58261 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=27 ttl=64 time=57261 ms</span><br></pre></td></tr></table></figure>
-<p>过了一会，断掉了，又起来了，正常了</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;64 bytes from 192.168.3.129: icmp_seq=97 ttl=64 time=19594 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=110 ttl=64 time=6594 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=92 ttl=64 time=24594 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=108 ttl=64 time=8594 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=116 ttl=64 time=593 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=117 ttl=64 time=0.697 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=118 ttl=64 time=0.677 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=119 ttl=64 time=0.718 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=120 ttl=64 time=0.436 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=121 ttl=64 time=0.426 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=122 ttl=64 time=165 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=123 ttl=64 time=0.474 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=124 ttl=64 time=0.489 ms&#10;&#10;From 192.168.2.232 icmp_seq=152 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=153 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=154 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=156 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=157 Destination Host Unreachable&#10;&#10;From 192.168.2.232 icmp_seq=166 Destination Host Unreachable&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=175 ttl=64 time=5.96 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=176 ttl=64 time=0.763 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=177 ttl=64 time=0.719 ms&#10;&#10;64 bytes from 192.168.3.129: icmp_seq=178 ttl=64 time=0.911 ms</span><br></pre></td></tr></table></figure>
-<p>再次访问vm也正常了.</p>
+		<p>有两个<code>Openstack</code> cluster,A和B<br>每个cluster都有单独的<code>Neutron</code> 节点，连接不同的物理交换机<br>网络使用Vlan模式，cluster里的VM使用<code>floating IP</code></p>
+<p>那么问题来了，cluster A的controller down了，数据库也没了，现在要把Cluster A中的<code>Nova</code>节点上的vm手动迁移到Cluster B上.<br>迁移没有问题，迁移之后在Cluster B上对VM绑定同样的floating IP,但是，<code>floating IP</code> ping不通了，VM之间的私网地址可以通信.<br><a id="more"></a></p>
+<p>查看物理交换机，发现对这个<code>floating IP</code>的路由仍然指到了Cluster A <code>Neutron</code> 节点所连接的物理交换机上。为了尽快解决问题，没有在物理交换机上继续调查.</p>
+<p>但是Cluster A的<code>controller</code>和数据库都不在了，不能用<code>Neutron</code> 命令删掉floating IP,所有直接在Neutron 节点上使用<code>Network Namespace</code>相关命令直接删除<code>floating IP</code>的绑定关系.</p>
+<p>先查看router信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@ITOP-Network ~]# ip netns&#10;&#10;qrouter-3ed77287-c1b7-4e8f-9109-b4e806d85f41&#10;&#10;qdhcp-d35f1024-b401-45aa-8e17-83f4ce15aa35</span><br></pre></td></tr></table></figure>
+<p>然后查router下的IP地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@ITOP-Network ~]# ip netns exec qrouter-3ed77287-c1b7-4e8f-9109-b4e806d85f41 ip addr list |more&#10;&#10;16: lo: &#60;LOOPBACK,UP,LOWER_UP&#62; mtu 16436 qdisc noqueue state UNKNOWN &#10;&#10;    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00&#10;&#10;    inet 127.0.0.1/8 scope host lo&#10;&#10;    inet6 ::1/128 scope host &#10;&#10;       valid_lft forever preferred_lft forever&#10;&#10;35: qr-c149e4d5-6b: &#60;BROADCAST,UP,LOWER_UP&#62; mtu 1500 qdisc noqueue state UNKNOWN &#10;&#10;    link/ether fa:16:3e:94:ef:3e brd ff:ff:ff:ff:ff:ff&#10;&#10;    inet 192.168.0.1/22 brd 192.168.3.255 scope global qr-c149e4d5-6b&#10;&#10;    inet6 fe80::f816:3eff:fe94:ef3e/64 scope link &#10;&#10;       valid_lft forever preferred_lft forever&#10;&#10;36: qg-dd3ea5ed-3b: &#60;BROADCAST,UP,LOWER_UP&#62; mtu 1500 qdisc noqueue state UNKNOWN &#10;&#10;    link/ether fa:16:3e:de:88:7e brd ff:ff:ff:ff:ff:ff&#10;&#10;    inet 10.10.88.11/22 brd 10.10.91.255 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.88.145/32 brd 10.10.88.145 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.88.121/32 brd 10.10.88.121 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.88.110/32 brd 10.10.88.110 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.89.157/32 brd 10.10.89.157 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.89.78/32 brd 10.10.89.78 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.89.73/32 brd 10.10.89.73 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.88.81/32 brd 10.10.88.81 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.89.68/32 brd 10.10.89.68 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.88.25/32 brd 10.10.88.25 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.88.111/32 brd 10.10.88.111 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.88.141/32 brd 10.10.88.141 scope global qg-dd3ea5ed-3b&#10;&#10;    inet 10.10.88.83/32 brd 10.10.88.83 scope global qg-dd3ea5ed-3b</span><br></pre></td></tr></table></figure>
+<p>可以用命令ping某个IP，还有其他很多namespace相关的命令.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@ITOP-Network ~]# ip netns exec qrouter-3ed77287-c1b7-4e8f-9109-b4e806d85f41 ping 10.10.89.156&#10;&#10;PING 10.10.89.156 (10.10.89.156) 56(84) bytes of data.&#10;&#10;64 bytes from 10.10.89.156: icmp_seq=1 ttl=63 time=1.06 ms&#10;&#10;64 bytes from 10.10.89.156: icmp_seq=2 ttl=63 time=0.520 ms</span><br></pre></td></tr></table></figure>
+<p>删除floating IP</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;ip netns exec qrouter-3ed77287-c1b7-4e8f-9109-b4e806d85f41 ip addr del 10.10.89.69/32 dev qg-dd3ea5ed-3b</span><br></pre></td></tr></table></figure>
+<p>做完之后，等一段时间，在cluster B上的floating IP可以ping了</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -159,7 +153,7 @@ var _hmt = _hmt || [];
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/Nova/">Nova</a><a href="/tags/Openstack/">Openstack</a>
+  <span></span> <a href="/tags/Neutron/">Neutron</a><a href="/tags/Openstack/">Openstack</a>
   </div>
 
 </div>
@@ -168,7 +162,7 @@ var _hmt = _hmt || [];
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://majian.in/2015/05/23/Nova-evacuate-test/" data-title="Nova evacuate test | Jason Ma&#39;s Tech Blog" data-tsina="null" class="share clearfix">
+	  <div data-url="http://majian.in/2015/05/27/delete-floatingip-on-neutron-node/" data-title="在Neutron节点上用namespace删除floating IP | Jason Ma&#39;s Tech Blog" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -181,19 +175,11 @@ var _hmt = _hmt || [];
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/2015/05/23/GPFS-installation-with-libc-so-6-issue/" title="Troubleshoting - GPFS installation issue with libc.so.6">
-  <strong>上一篇：</strong><br/>
-  <span>
-  Troubleshoting - GPFS installation issue with libc.so.6</span>
-</a>
-</div>
-
 
 <div class="next">
-<a href="/2015/05/23/GPFS-nodes-change-IP/"  title="GPFS cluster 更改 IP">
+<a href="/2015/05/26/Cinder-failed-over-GPFS/"  title="Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)">
  <strong>下一篇：</strong><br/> 
- <span>GPFS cluster 更改 IP
+ <span>Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)
 </span>
 </a>
 </div>
@@ -202,7 +188,7 @@ var _hmt = _hmt || [];
 
 	
 <section id="comments" class="comment">
-	<div class="ds-thread" data-thread-key="2015/05/23/Nova-evacuate-test/" data-title="Nova evacuate test" data-url="http://majian.in/2015/05/23/Nova-evacuate-test/"></div>
+	<div class="ds-thread" data-thread-key="2015/05/27/delete-floatingip-on-neutron-node/" data-title="在Neutron节点上用namespace删除floating IP" data-url="http://majian.in/2015/05/27/delete-floatingip-on-neutron-node/"></div>
 </section>
 
 
