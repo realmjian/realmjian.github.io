@@ -12,18 +12,18 @@
 
     
     <meta name="description" content="目的：测试nova rebuild功能
-Nova  rebuild会用指定的image重新建一个新VM，IP不变">
+Nova rebuild会用指定的image重新建一个新VM，IP不变">
 <meta property="og:type" content="article">
 <meta property="og:title" content="测试"Nova rebuild"">
 <meta property="og:url" content="http://majian.in/2015/05/27/Nova-rebuild-test/index.html">
 <meta property="og:site_name" content="Jason Ma's Tech Blog">
 <meta property="og:description" content="目的：测试nova rebuild功能
-Nova  rebuild会用指定的image重新建一个新VM，IP不变">
-<meta property="og:updated_time" content="2015-05-27T15:31:05.940Z">
+Nova rebuild会用指定的image重新建一个新VM，IP不变">
+<meta property="og:updated_time" content="2015-05-27T15:33:35.913Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="测试"Nova rebuild"">
 <meta name="twitter:description" content="目的：测试nova rebuild功能
-Nova  rebuild会用指定的image重新建一个新VM，IP不变">
+Nova rebuild会用指定的image重新建一个新VM，IP不变">
 
     
     <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
@@ -128,7 +128,7 @@ var _hmt = _hmt || [];
 		</div>
 		
 		<p>目的：测试nova rebuild功能</p>
-<p><code>Nova</code>  rebuild会用指定的image重新建一个新VM，IP不变</p>
+<p><code>Nova rebuild</code>会用指定的image重新建一个新VM，IP不变</p>
 <a id="more"></a>
 <p>测试前查看当前VM和volume状态,保证volume已经挂载</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@SDE-Controller auto_script]# nova list |grep mjrebuild&#10;&#10;| afc27839-08ac-493d-b9f9-654537edf6dc | mjrebuild-test               | ACTIVE  | None       | Running     | subnet-01=192.168.3.129               |&#10;&#10;[root@SDE-Controller auto_script]# cinder list |grep mjrebuild&#10;&#10;| 4264520f-30b8-4187-96b3-90002445a59f |   in-use  |     mjrebuild-test-disk2    |  10  |   gpfs_fpo  |  false   | afc27839-08ac-493d-b9f9-654537edf6dc |</span><br></pre></td></tr></table></figure>
