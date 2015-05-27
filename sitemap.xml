@@ -2,6 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://majian.in/2015/05/23/to-do/</loc>
+    <lastmod>2015-05-27T15:36:04.060Z</lastmod>
+  </url>
+  
+  <url>
     <loc>http://majian.in/2015/05/27/Nova-rebuild-test/</loc>
     <lastmod>2015-05-27T15:33:35.913Z</lastmod>
   </url>
@@ -29,11 +34,6 @@
   <url>
     <loc>http://majian.in/2015/05/26/Cinder-failed-over-GPFS/</loc>
     <lastmod>2015-05-26T15:12:58.858Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/2015/05/23/to-do/</loc>
-    <lastmod>2015-05-24T14:22:17.894Z</lastmod>
   </url>
   
   <url>
