@@ -19,7 +19,7 @@
 <meta property="og:site_name" content="Jason Ma's Tech Blog">
 <meta property="og:description" content="有两个Openstack cluster,A和B每个cluster都有单独的Neutron 节点，连接不同的物理交换机网络使用Vlan模式，cluster里的VM使用floating IP
 那么问题来了，cluster A的controller down了，数据库也没了，现在要把Cluster A中的Nova节点上的vm手动迁移到Cluster B上.迁移没有问题，迁移之后在Cluster B上对">
-<meta property="og:updated_time" content="2015-05-27T15:17:51.328Z">
+<meta property="og:updated_time" content="2015-05-27T15:24:31.505Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="在Neutron节点上用namespace删除floating IP">
 <meta name="twitter:description" content="有两个Openstack cluster,A和B每个cluster都有单独的Neutron 节点，连接不同的物理交换机网络使用Vlan模式，cluster里的VM使用floating IP
@@ -128,9 +128,9 @@ var _hmt = _hmt || [];
 		</div>
 		
 		<p>有两个<code>Openstack</code> cluster,A和B<br>每个cluster都有单独的<code>Neutron</code> 节点，连接不同的物理交换机<br>网络使用Vlan模式，cluster里的VM使用<code>floating IP</code></p>
-<p>那么问题来了，cluster A的controller down了，数据库也没了，现在要把Cluster A中的<code>Nova</code>节点上的vm手动迁移到Cluster B上.<br>迁移没有问题，迁移之后在Cluster B上对VM绑定同样的floating IP,但是，<code>floating IP</code> ping不通了，VM之间的私网地址可以通信.<br><a id="more"></a></p>
+<p>那么问题来了，cluster A的controller down了，数据库也没了，现在要把Cluster A中的<code>Nova</code>节点上的vm手动迁移到Cluster B上.<br>迁移没有问题，迁移之后在Cluster B上对VM绑定同样的floating IP,但是，VM之间的私网地址可以通信,<code>floating IP</code> ping不通了.<br><a id="more"></a></p>
 <p>查看物理交换机，发现对这个<code>floating IP</code>的路由仍然指到了Cluster A <code>Neutron</code> 节点所连接的物理交换机上。为了尽快解决问题，没有在物理交换机上继续调查.</p>
-<p>但是Cluster A的<code>controller</code>和数据库都不在了，不能用<code>Neutron</code> 命令删掉floating IP,所有直接在Neutron 节点上使用<code>Network Namespace</code>相关命令直接删除<code>floating IP</code>的绑定关系.</p>
+<p>但是Cluster A的<code>controller</code>和数据库都不在了，不能用<code>Neutron</code> 命令删掉floating IP,所以直接在Neutron 节点上使用<code>Network Namespace</code>相关命令直接删除<code>floating IP</code>的绑定关系.</p>
 <p>先查看router信息</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@ITOP-Network ~]# ip netns&#10;&#10;qrouter-3ed77287-c1b7-4e8f-9109-b4e806d85f41&#10;&#10;qdhcp-d35f1024-b401-45aa-8e17-83f4ce15aa35</span><br></pre></td></tr></table></figure>
 <p>然后查router下的IP地址</p>
@@ -175,6 +175,14 @@ var _hmt = _hmt || [];
 	
 <nav class="article-nav clearfix">
  
+ <div class="prev" >
+ <a href="/2015/05/27/Nova-rebuild-test/" title="测试&quot;Nova rebuild&quot;">
+  <strong>上一篇：</strong><br/>
+  <span>
+  测试&quot;Nova rebuild&quot;</span>
+</a>
+</div>
+
 
 <div class="next">
 <a href="/2015/05/26/Cinder-failed-over-GPFS/"  title="Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)">
@@ -216,7 +224,7 @@ var _hmt = _hmt || [];
 		  
 		
 		  
-			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>2</sup></a></li>
+			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>3</sup></a></li>
 		  
 		
 		  
@@ -237,15 +245,15 @@ var _hmt = _hmt || [];
 			
 		
 			
-				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>3</sup></a></li>
+				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Nova/" title="Nova">Nova<sup>2</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/Neutron/" title="Neutron">Neutron<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Nova/" title="Nova">Nova<sup>1</sup></a></li>
 			
 		
 			
