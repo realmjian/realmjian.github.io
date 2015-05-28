@@ -1,74 +1,192 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  
+
+    
   <url>
     <loc>http://majian.in/2015/05/23/to-do/</loc>
     <lastmod>2015-05-27T15:36:04.060Z</lastmod>
-  </url>
-  
+    <data>
+        <display>
+        <title>to do</title>
+        <pubTime>2015-05-23T11:11:29.000Z</pubTime>
+        
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
   <url>
     <loc>http://majian.in/2015/05/27/Nova-rebuild-test/</loc>
     <lastmod>2015-05-27T15:33:35.913Z</lastmod>
-  </url>
-  
+    <data>
+        <display>
+        <title>测试"Nova rebuild"</title>
+        <pubTime>2015-05-27T15:21:39.000Z</pubTime>
+        
+        <tag>Nova </tag>
+         
+        <tag>Openstack </tag>
+         
+         
+           
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
   <url>
     <loc>http://majian.in/2015/05/27/delete-floatingip-on-neutron-node/</loc>
     <lastmod>2015-05-27T15:24:31.505Z</lastmod>
-  </url>
-  
+    <data>
+        <display>
+        <title>在Neutron节点上用namespace删除floating IP</title>
+        <pubTime>2015-05-27T14:48:23.000Z</pubTime>
+        
+        <tag>Neutron </tag>
+         
+        <tag>Openstack </tag>
+         
+         
+           
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
   <url>
     <loc>http://majian.in/2015/05/23/Nova-evacuate-test/</loc>
     <lastmod>2015-05-27T15:22:06.147Z</lastmod>
-  </url>
-  
+    <data>
+        <display>
+        <title>测试"Nova evacuate"</title>
+        <pubTime>2015-05-23T04:29:43.000Z</pubTime>
+        
+        <tag>Nova </tag>
+         
+        <tag>Openstack </tag>
+         
+         
+           
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
   <url>
     <loc>http://majian.in/2015/05/23/installation-of-GPFS-cluster/</loc>
     <lastmod>2015-05-26T15:24:50.031Z</lastmod>
-  </url>
-  
+    <data>
+        <display>
+        <title>一次搭建GPFS FPO cluster的记录</title>
+        <pubTime>2015-05-22T16:30:00.000Z</pubTime>
+        
+        <tag>GPFS </tag>
+         
+         
+           
+             
+              <breadCrumb title="GPFS" url="http://majian.in/categories/GPFS/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
   <url>
     <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
     <lastmod>2015-05-26T15:20:39.463Z</lastmod>
-  </url>
-  
+    <data>
+        <display>
+        <title>Troubleshoting - GPFS installation issue with libc.so.6</title>
+        <pubTime>2015-05-23T10:12:45.000Z</pubTime>
+        
+        <tag>GPFS </tag>
+         
+         
+           
+             
+              <breadCrumb title="GPFS" url="http://majian.in/categories/GPFS/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
   <url>
     <loc>http://majian.in/2015/05/26/Cinder-failed-over-GPFS/</loc>
     <lastmod>2015-05-26T15:12:58.858Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/search/index.html</loc>
-    <lastmod>2015-05-24T13:59:05.851Z</lastmod>
-  </url>
-  
+    <data>
+        <display>
+        <title>Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)</title>
+        <pubTime>2015-05-26T13:44:43.000Z</pubTime>
+        
+        <tag>Cinder </tag>
+         
+        <tag>GPFS </tag>
+         
+        <tag>Openstack </tag>
+         
+         
+           
+             
+              <breadCrumb title="GPFS" url="http://majian.in/categories/GPFS/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/GPFS/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
   <url>
     <loc>http://majian.in/2015/05/23/first-post/</loc>
     <lastmod>2015-05-23T10:07:39.213Z</lastmod>
-  </url>
-  
+    <data>
+        <display>
+        <title>First post</title>
+        <pubTime>2015-05-22T16:00:00.000Z</pubTime>
+        
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
   <url>
     <loc>http://majian.in/2015/05/23/GPFS-nodes-change-IP/</loc>
     <lastmod>2015-05-23T09:18:25.111Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/about/index.html</loc>
-    <lastmod>2015-05-23T04:16:48.614Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/categories/index.html</loc>
-    <lastmod>2015-05-23T04:13:02.744Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/tags/index.html</loc>
-    <lastmod>2015-05-23T02:36:37.944Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/404.html</loc>
-    <lastmod>2015-04-10T13:22:06.000Z</lastmod>
-  </url>
-  
+    <data>
+        <display>
+        <title>GPFS cluster 更改 IP</title>
+        <pubTime>2015-05-22T16:32:41.000Z</pubTime>
+        
+        <tag>GPFS </tag>
+         
+         
+           
+             
+              <breadCrumb title="GPFS" url="http://majian.in/categories/GPFS/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
+    
+    
 </urlset>
