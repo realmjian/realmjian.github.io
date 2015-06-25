@@ -3,6 +3,258 @@
 
     
   <url>
+    <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
+    <lastmod>2015-06-25T14:28:05.807Z</lastmod>
+    <data>
+        <display>
+        <title>Troubleshooting - GPFS installation issue with libc.so.6</title>
+        <pubTime>2015-05-23T10:12:45.000Z</pubTime>
+        
+        <tag>GPFS </tag>
+         
+        <tag>Troubleshooting </tag>
+         
+         
+           
+             
+              <breadCrumb title="GPFS" url="http://majian.in/categories/GPFS/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/06/25/salt-install-swift/</loc>
+    <lastmod>2015-06-25T14:26:07.676Z</lastmod>
+    <data>
+        <display>
+        <title>使用Salt-stack配置Swift集群</title>
+        <pubTime>2015-06-25T14:15:35.000Z</pubTime>
+        
+        <tag>Openstack </tag>
+         
+        <tag>Salt </tag>
+         
+        <tag>Swift </tag>
+         
+         
+           
+             
+              <breadCrumb title="Swift" url="http://majian.in/categories/Swift/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Swift/Openstack/"/>
+          
+             
+              <breadCrumb title="Salt" url="http://majian.in/categories/Swift/Openstack/Salt/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-ring-operation/</loc>
+    <lastmod>2015-06-25T14:14:12.585Z</lastmod>
+    <data>
+        <display>
+        <title>Swift 对 Ring 的相关操作</title>
+        <pubTime>2015-06-25T14:09:15.000Z</pubTime>
+        
+        <tag>Openstack </tag>
+         
+        <tag>Swift </tag>
+         
+         
+           
+             
+              <breadCrumb title="Swift" url="http://majian.in/categories/Swift/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Swift/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-curl-api/</loc>
+    <lastmod>2015-06-25T14:07:21.472Z</lastmod>
+    <data>
+        <display>
+        <title>使用cURL操作Openstack Swift 存储的ReST API</title>
+        <pubTime>2015-06-25T13:55:18.000Z</pubTime>
+        
+        <tag>Openstack </tag>
+         
+        <tag>Swift </tag>
+         
+        <tag>curl </tag>
+         
+         
+           
+             
+              <breadCrumb title="Swift" url="http://majian.in/categories/Swift/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Swift/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-tuning/</loc>
+    <lastmod>2015-06-25T13:53:20.011Z</lastmod>
+    <data>
+        <display>
+        <title>Swift 集群配置优化</title>
+        <pubTime>2015-06-25T13:35:22.000Z</pubTime>
+        
+        <tag>Openstack </tag>
+         
+        <tag>Swift </tag>
+         
+         
+           
+             
+              <breadCrumb title="Swift" url="http://majian.in/categories/Swift/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Swift/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-get-nodes/</loc>
+    <lastmod>2015-06-25T13:34:23.012Z</lastmod>
+    <data>
+        <display>
+        <title>使用 swift-get-nodes查看Glance 镜像在Swift 存储里的位置信息</title>
+        <pubTime>2015-06-25T13:26:47.000Z</pubTime>
+        
+        <tag>Glance </tag>
+         
+        <tag>Keystone </tag>
+         
+        <tag>Openstack </tag>
+         
+        <tag>Swift </tag>
+         
+         
+           
+             
+              <breadCrumb title="Swift" url="http://majian.in/categories/Swift/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Swift/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/05/26/Cinder-failed-over-GPFS/</loc>
+    <lastmod>2015-06-25T13:20:24.018Z</lastmod>
+    <data>
+        <display>
+        <title>Troubleshooting - Cinder 创建 volume失败 (用GPFS做backend)</title>
+        <pubTime>2015-05-26T13:44:43.000Z</pubTime>
+        
+        <tag>Cinder </tag>
+         
+        <tag>GPFS </tag>
+         
+        <tag>Openstack </tag>
+         
+         
+           
+             
+              <breadCrumb title="GPFS" url="http://majian.in/categories/GPFS/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/GPFS/Openstack/"/>
+          
+             
+              <breadCrumb title="Troubleshooting" url="http://majian.in/categories/GPFS/Openstack/Troubleshooting/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/06/25/troubleshooting-swift/</loc>
+    <lastmod>2015-06-25T13:18:59.319Z</lastmod>
+    <data>
+        <display>
+        <title>Troubleshooting 搭建Swift集群时遇到的问题</title>
+        <pubTime>2015-06-25T13:14:30.000Z</pubTime>
+        
+        <tag>Glance </tag>
+         
+        <tag>Keystone </tag>
+         
+        <tag>Openstack </tag>
+         
+        <tag>Swift </tag>
+         
+         
+           
+             
+              <breadCrumb title="Swift" url="http://majian.in/categories/Swift/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Swift/Openstack/"/>
+          
+             
+              <breadCrumb title="Troubleshooting" url="http://majian.in/categories/Swift/Openstack/Troubleshooting/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-install-keystone-glance/</loc>
+    <lastmod>2015-06-25T13:15:21.399Z</lastmod>
+    <data>
+        <display>
+        <title>搭建Swift 集群并与Keystone和Glance 集成</title>
+        <pubTime>2015-06-25T12:10:43.000Z</pubTime>
+        
+        <tag>Glance </tag>
+         
+        <tag>Keystone </tag>
+         
+        <tag>Openstack </tag>
+         
+        <tag>Swift </tag>
+         
+         
+           
+             
+              <breadCrumb title="Swift" url="http://majian.in/categories/Swift/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Swift/Openstack/"/>
+          
+             
+              <breadCrumb title="Troubleshooting" url="http://majian.in/categories/Swift/Openstack/Troubleshooting/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://majian.in/2015/05/23/to-do/</loc>
     <lastmod>2015-05-27T15:36:04.060Z</lastmod>
     <data>
@@ -97,53 +349,6 @@
            
              
               <breadCrumb title="GPFS" url="http://majian.in/categories/GPFS/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
-    <lastmod>2015-05-26T15:20:39.463Z</lastmod>
-    <data>
-        <display>
-        <title>Troubleshoting - GPFS installation issue with libc.so.6</title>
-        <pubTime>2015-05-23T10:12:45.000Z</pubTime>
-        
-        <tag>GPFS </tag>
-         
-         
-           
-             
-              <breadCrumb title="GPFS" url="http://majian.in/categories/GPFS/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://majian.in/2015/05/26/Cinder-failed-over-GPFS/</loc>
-    <lastmod>2015-05-26T15:12:58.858Z</lastmod>
-    <data>
-        <display>
-        <title>Troubleshoting - Cinder 创建 volume失败 (用GPFS做backend)</title>
-        <pubTime>2015-05-26T13:44:43.000Z</pubTime>
-        
-        <tag>Cinder </tag>
-         
-        <tag>GPFS </tag>
-         
-        <tag>Openstack </tag>
-         
-         
-           
-             
-              <breadCrumb title="GPFS" url="http://majian.in/categories/GPFS/"/>
-          
-             
-              <breadCrumb title="Openstack" url="http://majian.in/categories/GPFS/Openstack/"/>
           
         </display>
     </data>

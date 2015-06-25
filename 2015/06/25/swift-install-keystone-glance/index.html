@@ -1,0 +1,773 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>搭建Swift 集群并与Keystone和Glance 集成 | Jason Ma&#39;s Tech Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Jason Ma">
+    
+
+    
+    <meta name="description" content="我们的环境一直在用GPFS做为Image,Volume和Instance的统一存储，因为要开放虚拟机的Snapshot功能，所以对于镜像存储要有多个选择，并做分层级的备份方案.比如除GPFS外，测试Swift和Ceph。并且考虑对于位于分布式存储上的镜像文件，周期性的备份到IBM TSM（磁带存储）上并做为异地备份.下面是这次搭建Swift集群的记录.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="搭建Swift 集群并与Keystone和Glance 集成">
+<meta property="og:url" content="http://majian.in/2015/06/25/swift-install-keystone-glance/index.html">
+<meta property="og:site_name" content="Jason Ma's Tech Blog">
+<meta property="og:description" content="我们的环境一直在用GPFS做为Image,Volume和Instance的统一存储，因为要开放虚拟机的Snapshot功能，所以对于镜像存储要有多个选择，并做分层级的备份方案.比如除GPFS外，测试Swift和Ceph。并且考虑对于位于分布式存储上的镜像文件，周期性的备份到IBM TSM（磁带存储）上并做为异地备份.下面是这次搭建Swift集群的记录.">
+<meta property="og:updated_time" content="2015-06-25T13:15:21.399Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="搭建Swift 集群并与Keystone和Glance 集成">
+<meta name="twitter:description" content="我们的环境一直在用GPFS做为Image,Volume和Instance的统一存储，因为要开放虚拟机的Snapshot功能，所以对于镜像存储要有多个选择，并做分层级的备份方案.比如除GPFS外，测试Swift和Ceph。并且考虑对于位于分布式存储上的镜像文件，周期性的备份到IBM TSM（磁带存储）上并做为异地备份.下面是这次搭建Swift集群的记录.">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    
+<script type="text/javascript">
+#�����İٶ�ͳ�ƴ���
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?2ef7ca695a563268850bd2bdeaba14b4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Jason Ma&#39;s Tech Blog" title="Jason Ma&#39;s Tech Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Jason Ma&#39;s Tech Blog">Jason Ma&#39;s Tech Blog</a></h1>
+				<h2 class="blog-motto">Writing 1000 Words a Day Changes My Life(testing blog)</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/tags">Tags</a></li>
+					
+						<li><a href="/categories">Categories</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 8159045344704375541 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/06/25/swift-install-keystone-glance/" title="搭建Swift 集群并与Keystone和Glance 集成" itemprop="url">搭建Swift 集群并与Keystone和Glance 集成</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
+		
+  <p class="article-time">
+    <time datetime="2015-06-25T12:10:43.000Z" itemprop="datePublished"> 发表于 2015-06-25</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Topo"><span class="toc-number">1.</span> <span class="toc-text">Topo</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#OS_配置"><span class="toc-number">2.</span> <span class="toc-text">OS 配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swift_Proxy_node_配置"><span class="toc-number">3.</span> <span class="toc-text">Swift Proxy node 配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swift_Storage_node_配置"><span class="toc-number">4.</span> <span class="toc-text">Swift Storage node 配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#创建_rings"><span class="toc-number">5.</span> <span class="toc-text">创建 rings</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swift_使用Tempauth测试"><span class="toc-number">6.</span> <span class="toc-text">Swift 使用Tempauth测试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swfit与Keystone集成"><span class="toc-number">7.</span> <span class="toc-text">Swfit与Keystone集成</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swift_和Glance集成"><span class="toc-number">8.</span> <span class="toc-text">Swift 和Glance集成</span></a></li></ol>
+		
+		</div>
+		
+		<p>我们的环境一直在用GPFS做为Image,Volume和Instance的统一存储，因为要开放虚拟机的Snapshot功能，所以对于镜像存储要有多个选择，并做分层级的备份方案.比如除GPFS外，测试Swift和Ceph。并且考虑对于位于分布式存储上的镜像文件，周期性的备份到IBM TSM（磁带存储）上并做为异地备份.<br>下面是这次搭建Swift集群的记录.<br><a id="more"></a></p>
+<h4 id="Topo">Topo</h4><ul>
+<li><p>网络</p>
+<ul>
+<li><p>管理网络 (1G NIC)</p>
+</li>
+<li><p>存储网络，使用192.168地址 ( 2 X 1G NIC bonding)</p>
+</li>
+</ul>
+</li>
+<li><p>文件系统</p>
+<ul>
+<li>XFS</li>
+</ul>
+</li>
+<li><p>OS</p>
+<ul>
+<li>RHEL6.6(minimal)</li>
+</ul>
+</li>
+<li><p>Diagram</p>
+</li>
+</ul>
+<h4 id="OS_配置">OS 配置</h4><ul>
+<li><p>YUM repo</p>
+<ul>
+<li><p>EPEL</p>
+</li>
+<li><p>内部RHEL repo</p>
+</li>
+<li><p>RDO repo</p>
+</li>
+</ul>
+</li>
+<li><p>Salt-minion （我们统一用Salt-stack做集群配置管理，并批量部署集群)</p>
+</li>
+<li><p>使用Salt配置以下OS 配置</p>
+<ul>
+<li><p>iptables</p>
+</li>
+<li><p>selinux</p>
+</li>
+<li><p>DNS</p>
+</li>
+<li><p>YUM repo files</p>
+</li>
+<li><p>vim,scp,</p>
+</li>
+<li><p>hosts</p>
+</li>
+<li><p>ntp and cron</p>
+</li>
+<li><p>sshd_config and ssh service</p>
+</li>
+<li><p>sudoers</p>
+</li>
+<li><p>authorized_keys</p>
+</li>
+<li><p>user_history script and cron</p>
+</li>
+<li><p>sysctl.conf</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Swift_Proxy_node_配置">Swift Proxy node 配置</h4><ul>
+<li>安装相关软件包</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install openstack-swift-proxy memcached python-swiftclient python-keystone-auth-token python-keystoneclient</span><br></pre></td></tr></table></figure>
+<ul>
+<li>配置 memcached</li>
+</ul>
+<p>change the OPTIONS with IP address</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PORT=&#34;11211&#34;&#10;MAXCONN=&#34;1024&#34;&#10;CACHESIZE=&#34;64&#34;&#10;OPTIONS=&#34;-l 192.168.107.116&#34;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>重启 memcached 服务</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service memcached restart</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建 /etc/swift/swift.conf 在所有节点上, hash 值 必须保持一致</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[swift-hash]&#10;swift_hash_path_suffix = asdfasjdfasjdlfa</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编辑 /etc/swift/proxy-server.conf</li>
+</ul>
+<p>我们先用<code>Tempauth</code> 做测试,保证在与Keystone和Glance集成前，Swift 集群本身功能正常</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[DEFAULT]&#10;&#10;bind_ip = 192.168.107.116 &#10;&#10;bind_port = 8080&#10;&#10;user = swift&#10;&#10;workers = 2&#10;&#10;log_name = swift-proxy &#10;&#10;log_level = DEBUG  &#10;&#10;log_facility = LOG_LOCAL0 &#10;&#10;[pipeline:main]&#10;&#10;pipeline = healthcheck cache tempauth proxy-server&#10;&#10;[app:proxy-server]&#10;&#10;use = egg:swift#proxy&#10;&#10;allow_account_management = true&#10;&#10;account_autocreate = true&#10;&#10;# Delaying the auth decision is required to support token-less&#10;&#10;# usage for anonymous referrers (&#39;.r:*&#39;).&#10;&#10;#delay_auth_decision = true&#10;&#10;# cache directory for signing certificate&#10;&#10;signing_dir = /home/swift/keystone-signing&#10;&#10;[filter:cache]&#10;&#10;use = egg:swift#memcache&#10;&#10;memcache_servers = 192.168.107.116:11211,192.168.107.118:11211,192.168.107.119:11211&#10;&#10;[filter:catch_errors]&#10;&#10;use = egg:swift#catch_errors&#10;&#10;[filter:healthcheck]&#10;&#10;use = egg:swift#healthcheck&#10;&#10;[filter:tempauth]&#10;&#10;use = egg:swift#tempauth&#10;&#10;# user_&#60;tenant&#62;_&#60;username&#62; = &#60;password&#62; &#60;privileges&#62; &#10;&#10;user_admin_admin = admin .admin .reseller_admin&#10;&#10;user_test_tester = testing .admin&#10;&#10;user_test2_tester2 = testing2 .admin&#10;&#10;user_test_tester3 = testing3</span><br></pre></td></tr></table></figure>
+<p>note1: 在每个Swift Proxy 节点上都启动 <code>memcached</code>服务，并把所有节点上的memcached服务都写在proxy-server.conf中</p>
+<p>note2: 注意在<code>[pipeline:main]</code>中是 ‘tempauth’</p>
+<p>note3: 暂时先不创建Ring，等Swift Storage node上配置完disk和相关服务后再创建</p>
+<h4 id="Swift_Storage_node_配置">Swift Storage node 配置</h4><ul>
+<li>安装相关软件包</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;#yum install openstack-swift-account openstack-swift-container openstack-swift-object xfsprogs xinetd</span><br></pre></td></tr></table></figure>
+<ul>
+<li>格式化磁盘并mount，这里用/dev/sdb1为例，注意/srv/node目录权限，保证swift用户可以读写</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;# fdisk /dev/sdb&#10;&#10;# mkfs.xfs /dev/sdb1&#10;&#10;# echo &#34;/dev/sdb1 /srv/node/sdb1 xfs noatime,nodiratime,nobarrier,logbufs=8 0 0&#34; &#62;&#62; /etc/fstab&#10;&#10;# mkdir -p /srv/node/sdb1&#10;&#10;# mount /srv/node/sdb1&#10;&#10;# chown -R swift:swift /srv/node</span><br></pre></td></tr></table></figure>
+<p>note: 这里使用Swift 官方默认的设置，使用/srv/node做为各个disk挂载点的统一的父目录，并配置在account-server/container-server/object-server等配置文件里，并只使用默认的端口(account server : 6002,container-server : 6001,object-server :6000 ).详细见下面例子。<br>还有一种方法，出于优化I/O和使用专用replication网络的目的，把每个disk都使用单独的父目录和单独的端口，我会在另外一篇文章里详细说明。</p>
+<ul>
+<li>配置 /etc/rsyncd.conf:</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;uid = swift&#10;&#10;gid = swift&#10;&#10;log file = /var/log/rsyncd.log&#10;&#10;pid file = /var/run/rsyncd.pid&#10;&#10;address = STORAGE_LOCAL_NET_IP&#10;&#10;[account]&#10;&#10;max connections = 2&#10;&#10;path = /srv/node/&#10;&#10;read only = false&#10;&#10;lock file = /var/lock/account.lock&#10;&#10;[container]&#10;&#10;max connections = 2&#10;&#10;path = /srv/node/&#10;&#10;read only = false&#10;&#10;lock file = /var/lock/container.lock&#10;&#10;[object]&#10;&#10;max connections = 2&#10;&#10;path = /srv/node/&#10;&#10;read only = false&#10;&#10;lock file = /var/lock/object.lock</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编辑 /etc/xinetd.d/rsync，disable设为no</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;disable = no</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过启动xinetd服务来启动rsync</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;# service xinetd start</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建 Swift recon cache 目录并分配权限:</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;# mkdir -p /var/swift/recon&#10;&#10;# chown -R swift:swift /var/swift/recon</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编辑 /etc/swift/account-server.conf</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@itswift1 swift]# cat account-server.conf &#10;&#10;[DEFAULT]&#10;&#10;bind_ip = 192.168.107.116&#10;&#10;bind_port = 6002&#10;&#10;workers = 2&#10;&#10;[pipeline:main]&#10;&#10;pipeline = recon account-server&#10;&#10;[app:account-server]&#10;&#10;use = egg:swift#account&#10;&#10;[account-replicator]&#10;&#10;[account-auditor]&#10;&#10;[account-reaper]&#10;&#10;[filter:recon]&#10;&#10;use = egg:swift#recon&#10;&#10;recon_cache_path = /var/swift/recon&#10;&#10;account_recon = true</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编辑 /etc/swift/container-server.conf</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@itswift1 swift]# cat /etc/swift/container-server.conf &#10;&#10;[DEFAULT]&#10;&#10;bind_ip = 192.168.107.116&#10;&#10;bind_port = 6001&#10;&#10;workers = 2&#10;&#10;[pipeline:main]&#10;&#10;pipeline = recon container-server&#10;&#10;[app:container-server]&#10;&#10;use = egg:swift#container&#10;&#10;[container-replicator]&#10;&#10;[container-updater]&#10;&#10;[container-auditor]&#10;&#10;[container-sync]&#10;&#10;[filter:recon]&#10;&#10;use = egg:swift#recon&#10;&#10;recon_cache_path = /var/swift/recon&#10;&#10;account_recon = true</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编辑 /etc/swift/object-server.conf </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@itswift1 swift]# cat /etc/swift/object-server.conf &#10;&#10;[DEFAULT]&#10;&#10;bind_ip = 192.168.107.116&#10;&#10;bind_port = 6000&#10;&#10;workers = 3&#10;&#10;[pipeline:main]&#10;&#10;pipeline = recon object-server&#10;&#10;[app:object-server]&#10;&#10;use = egg:swift#object&#10;&#10;[object-replicator]&#10;&#10;[object-auditor]&#10;&#10;[object-updater]&#10;&#10;[filter:recon]&#10;&#10;use = egg:swift#recon&#10;&#10;recon_cache_path = /var/swift/recon&#10;&#10;account_recon = true</span><br></pre></td></tr></table></figure>
+<h4 id="创建_rings">创建 rings</h4><ul>
+<li>创建Ring</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@itswift1 swift]# swift-ring-builder account.builder create 18 3 1&#10;&#10;[root@itswift1 swift]# swift-ring-builder container.builder create 18 3 1&#10;&#10;[root@itswift1 swift]# swift-ring-builder object.builder create 18 3 1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>添加磁盘到Ring的逻辑</li>
+</ul>
+<p>note1: 每个用来做account/container/object的磁盘都要添加到相应的Ring里才可以使用</p>
+<p>note2: 添加磁盘时，每条命令都指明了account/container/object可以存储到哪里</p>
+<p>note3: 添加磁盘时，ring的相关设置和你怎么mount磁盘，怎么配置rsync和account-server/container-server/object-server有关</p>
+<ul>
+<li>举个栗子</li>
+</ul>
+<p>按照Swift 官方说明(以/dev/sdb1为例):</p>
+<p>/dev/sdb1        —&gt; mounted as /srv/node</p>
+<p>in rsyncd.conf   —&gt; /srv/node also as one modoule </p>
+<p>in account-server.conf, ‘devices = /srv/node’,’bind_ip = 192.168.107.116’,’bind_port = 6002’</p>
+<p>使用相同的devices/IP/port 配置container-server.conf and object-server.conf (on same node)</p>
+<p>用以下命令添加磁盘到ring:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;swift-ring-builder account.builder add z1-192.168.107.116:6002/sdb1 100</span><br></pre></td></tr></table></figure>
+<p>上面命令指明了查找account存储位置的逻辑顺序: </p>
+<p>zone1 —&gt; IP(192.168.107.116) —&gt; port(6002) —&gt; 在account-server.conf找到相应port —&gt; 根据port找到port绑定的磁盘父目录 /srv/node —&gt; 找到sdb1</p>
+<p>对于container和object是用样的</p>
+<p>如果上面相关任何相关配置出错,当你操作account/container/object时会碰到400/404等错误</p>
+<ul>
+<li>添加磁盘到ring</li>
+</ul>
+<p>我们有三个node，每个node14块盘，sdb-sdo</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for i in sd&#123;b..o&#125;1;do swift-ring-builder account.builder add z1-192.168.107.116:6002/$i 100;done&#10;&#10;for i in sd&#123;b..o&#125;1;do swift-ring-builder container.builder add z1-192.168.107.116:6001/$i 100;done&#10;&#10;for i in sd&#123;b..o&#125;1;do swift-ring-builder object.builder add z1-192.168.107.116:6000/$i 100;done&#10;&#10;&#10;for i in sd&#123;b..o&#125;1;do swift-ring-builder account.builder add z2-192.168.107.118:6002/$i 100;done&#10;&#10;for i in sd&#123;b..o&#125;1;do swift-ring-builder container.builder add z2-192.168.107.118:6001/$i 100;done&#10;&#10;for i in sd&#123;b..o&#125;1;do swift-ring-builder object.builder add z2-192.168.107.118:6000/$i 100;done&#10;&#10;&#10;for i in sd&#123;b..o&#125;1;do swift-ring-builder account.builder add z3-192.168.107.119:6002/$i 100;done&#10;&#10;for i in sd&#123;b..o&#125;1;do swift-ring-builder container.builder add z3-192.168.107.119:6001/$i 100;done&#10;&#10;for i in sd&#123;b..o&#125;1;do swift-ring-builder object.builder add z3-192.168.107.119:6000/$i 100;done</span><br></pre></td></tr></table></figure>
+<ul>
+<li>检查一下ring</li>
+</ul>
+<p>以 object ring为例</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@itswift1 swift]# swift-ring-builder object.builder&#10;&#10;object.builder, build version 42&#10;&#10;262144 partitions, 3.000000 replicas, 1 regions, 3 zones, 42 devices, 100.00 balance&#10;&#10;The minimum number of hours before a partition can be reassigned is 1&#10;&#10;Devices:    id  region  zone      ip address  port  replication ip  replication port      name weight partitions balance meta&#10;&#10;             0       1     1 192.168.107.116  6000 192.168.107.116              6000       sdb 100.00          0 -100.00 &#10;&#10;             1       1     1 192.168.107.116  6000 192.168.107.116              6000       sdc 100.00          0 -100.00 &#10;&#10;             2       1     1 192.168.107.116  6000 192.168.107.116              6000       sdd 100.00          0 -100.00 &#10;&#10;             3       1     1 192.168.107.116  6000 192.168.107.116              6000       sde 100.00          0 -100.00 &#10;&#10;             4       1     1 192.168.107.116  6000 192.168.107.116              6000       sdf 100.00          0 -100.00 &#10;&#10;             5       1     1 192.168.107.116  6000 192.168.107.116              6000       sdg 100.00          0 -100.00 &#10;&#10;             6       1     1 192.168.107.116  6000 192.168.107.116              6000       sdh 100.00          0 -100.00 &#10;&#10;             7       1     1 192.168.107.116  6000 192.168.107.116              6000       sdi 100.00          0 -100.00 &#10;&#10;             8       1     1 192.168.107.116  6000 192.168.107.116              6000       sdj 100.00          0 -100.00 &#10;&#10;             9       1     1 192.168.107.116  6000 192.168.107.116              6000       sdk 100.00          0 -100.00 &#10;&#10;            10       1     1 192.168.107.116  6000 192.168.107.116              6000       sdl 100.00          0 -100.00 &#10;&#10;            11       1     1 192.168.107.116  6000 192.168.107.116              6000       sdm 100.00          0 -100.00 &#10;&#10;            12       1     1 192.168.107.116  6000 192.168.107.116              6000       sdn 100.00          0 -100.00 &#10;&#10;            13       1     1 192.168.107.116  6000 192.168.107.116              6000       sdo 100.00          0 -100.00 &#10;&#10;            14       1     2 192.168.107.118  6000 192.168.107.118              6000       sdb 100.00          0 -100.00 &#10;&#10;            15       1     2 192.168.107.118  6000 192.168.107.118              6000       sdc 100.00          0 -100.00 &#10;&#10;            16       1     2 192.168.107.118  6000 192.168.107.118              6000       sdd 100.00          0 -100.00 &#10;&#10;            17       1     2 192.168.107.118  6000 192.168.107.118              6000       sde 100.00          0 -100.00 &#10;&#10;            18       1     2 192.168.107.118  6000 192.168.107.118              6000       sdf 100.00          0 -100.00 &#10;&#10;            19       1     2 192.168.107.118  6000 192.168.107.118              6000       sdg 100.00          0 -100.00 &#10;&#10;            20       1     2 192.168.107.118  6000 192.168.107.118              6000       sdh 100.00          0 -100.00 &#10;&#10;            21       1     2 192.168.107.118  6000 192.168.107.118              6000       sdi 100.00          0 -100.00 &#10;&#10;            22       1     2 192.168.107.118  6000 192.168.107.118              6000       sdj 100.00          0 -100.00 &#10;&#10;            23       1     2 192.168.107.118  6000 192.168.107.118              6000       sdk 100.00          0 -100.00 &#10;&#10;            24       1     2 192.168.107.118  6000 192.168.107.118              6000       sdl 100.00          0 -100.00 &#10;&#10;            25       1     2 192.168.107.118  6000 192.168.107.118              6000       sdm 100.00          0 -100.00 &#10;&#10;            26       1     2 192.168.107.118  6000 192.168.107.118              6000       sdn 100.00          0 -100.00 &#10;&#10;            27       1     2 192.168.107.118  6000 192.168.107.118              6000       sdo 100.00          0 -100.00 &#10;&#10;            28       1     3 192.168.107.119  6000 192.168.107.119              6000       sdb 100.00          0 -100.00 &#10;&#10;            29       1     3 192.168.107.119  6000 192.168.107.119              6000       sdc 100.00          0 -100.00 &#10;&#10;            30       1     3 192.168.107.119  6000 192.168.107.119              6000       sdd 100.00          0 -100.00 &#10;&#10;            31       1     3 192.168.107.119  6000 192.168.107.119              6000       sde 100.00          0 -100.00 &#10;&#10;            32       1     3 192.168.107.119  6000 192.168.107.119              6000       sdf 100.00          0 -100.00 &#10;&#10;            33       1     3 192.168.107.119  6000 192.168.107.119              6000       sdg 100.00          0 -100.00 &#10;&#10;            34       1     3 192.168.107.119  6000 192.168.107.119              6000       sdh 100.00          0 -100.00 &#10;&#10;            35       1     3 192.168.107.119  6000 192.168.107.119              6000       sdi 100.00          0 -100.00 &#10;&#10;            36       1     3 192.168.107.119  6000 192.168.107.119              6000       sdj 100.00          0 -100.00 &#10;&#10;            37       1     3 192.168.107.119  6000 192.168.107.119              6000       sdk 100.00          0 -100.00 &#10;&#10;            38       1     3 192.168.107.119  6000 192.168.107.119              6000       sdl 100.00          0 -100.00 &#10;&#10;            39       1     3 192.168.107.119  6000 192.168.107.119              6000       sdm 100.00          0 -100.00 &#10;&#10;            40       1     3 192.168.107.119  6000 192.168.107.119              6000       sdn 100.00          0 -100.00 &#10;&#10;            41       1     3 192.168.107.119  6000 192.168.107.119              6000       sdo 100.00          0 -100.00</span><br></pre></td></tr></table></figure>
+<ul>
+<li>copy ring 新生成的相关文件到其他所有节点的/etc/swift目录</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@itswift1 swift]# for i in 192.168.107.11&#123;8,9&#125;;do scp *.ring.gz root@$i:/etc/swift/;done &#10;&#10;[root@itswift1 swift]# for i in 192.168.107.11&#123;8,9&#125;;do scp *.builder root@$i:/etc/swift/;done</span><br></pre></td></tr></table></figure>
+<p>note: 每次更改rings后,都要把新生成的<em>.ring.gz和</em>.builder拷贝到其他所有节点,然后再 rebalance ring</p>
+<ul>
+<li>rebalance ring</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@itswift1 swift]# swift-ring-builder object.builder rebalance         &#10;&#10;Reassigned 262144 (100.00%) partitions. Balance is now 0.00.&#10;&#10;[root@itswift1 swift]# swift-ring-builder object.builder &#10;&#10;object.builder, build version 42&#10;&#10;262144 partitions, 3.000000 replicas, 1 regions, 3 zones, 42 devices, 0.00 balance&#10;&#10;The minimum number of hours before a partition can be reassigned is 1&#10;&#10;Devices:    id  region  zone      ip address  port  replication ip  replication port      name weight partitions balance meta&#10;&#10;             0       1     1 192.168.107.116  6000 192.168.107.116              6000       sdb 100.00      18724   -0.00 &#10;&#10;             1       1     1 192.168.107.116  6000 192.168.107.116              6000       sdc 100.00      18724   -0.00 &#10;&#10;             2       1     1 192.168.107.116  6000 192.168.107.116              6000       sdd 100.00      18724   -0.00 &#10;&#10;             3       1     1 192.168.107.116  6000 192.168.107.116              6000       sde 100.00      18725    0.00 &#10;&#10;             4       1     1 192.168.107.116  6000 192.168.107.116              6000       sdf 100.00      18724   -0.00 &#10;&#10;             5       1     1 192.168.107.116  6000 192.168.107.116              6000       sdg 100.00      18725    0.00 &#10;&#10;             6       1     1 192.168.107.116  6000 192.168.107.116              6000       sdh 100.00      18724   -0.00 &#10;&#10;             7       1     1 192.168.107.116  6000 192.168.107.116              6000       sdi 100.00      18725    0.00 &#10;&#10;             8       1     1 192.168.107.116  6000 192.168.107.116              6000       sdj 100.00      18725    0.00 &#10;&#10;             9       1     1 192.168.107.116  6000 192.168.107.116              6000       sdk 100.00      18724   -0.00 &#10;&#10;            10       1     1 192.168.107.116  6000 192.168.107.116              6000       sdl 100.00      18725    0.00 &#10;&#10;            11       1     1 192.168.107.116  6000 192.168.107.116              6000       sdm 100.00      18725    0.00 &#10;&#10;            12       1     1 192.168.107.116  6000 192.168.107.116              6000       sdn 100.00      18725    0.00 &#10;&#10;            13       1     1 192.168.107.116  6000 192.168.107.116              6000       sdo 100.00      18725    0.00 &#10;&#10;            14       1     2 192.168.107.118  6000 192.168.107.118              6000       sdb 100.00      18725    0.00 &#10;&#10;            15       1     2 192.168.107.118  6000 192.168.107.118              6000       sdc 100.00      18725    0.00 &#10;&#10;            16       1     2 192.168.107.118  6000 192.168.107.118              6000       sdd 100.00      18725    0.00 &#10;&#10;            17       1     2 192.168.107.118  6000 192.168.107.118              6000       sde 100.00      18725    0.00 &#10;&#10;            18       1     2 192.168.107.118  6000 192.168.107.118              6000       sdf 100.00      18725    0.00 &#10;&#10;            19       1     2 192.168.107.118  6000 192.168.107.118              6000       sdg 100.00      18725    0.00 &#10;&#10;            20       1     2 192.168.107.118  6000 192.168.107.118              6000       sdh 100.00      18725    0.00 &#10;&#10;            21       1     2 192.168.107.118  6000 192.168.107.118              6000       sdi 100.00      18724   -0.00 &#10;&#10;            22       1     2 192.168.107.118  6000 192.168.107.118              6000       sdj 100.00      18724   -0.00 &#10;&#10;            23       1     2 192.168.107.118  6000 192.168.107.118              6000       sdk 100.00      18724   -0.00 &#10;&#10;            24       1     2 192.168.107.118  6000 192.168.107.118              6000       sdl 100.00      18724   -0.00 &#10;&#10;            25       1     2 192.168.107.118  6000 192.168.107.118              6000       sdm 100.00      18724   -0.00 &#10;&#10;            26       1     2 192.168.107.118  6000 192.168.107.118              6000       sdn 100.00      18724   -0.00 &#10;&#10;            27       1     2 192.168.107.118  6000 192.168.107.118              6000       sdo 100.00      18725    0.00 &#10;&#10;            28       1     3 192.168.107.119  6000 192.168.107.119              6000       sdb 100.00      18725    0.00 &#10;&#10;            29       1     3 192.168.107.119  6000 192.168.107.119              6000       sdc 100.00      18724   -0.00 &#10;&#10;            30       1     3 192.168.107.119  6000 192.168.107.119              6000       sdd 100.00      18725    0.00 &#10;&#10;            31       1     3 192.168.107.119  6000 192.168.107.119              6000       sde 100.00      18724   -0.00 &#10;&#10;            32       1     3 192.168.107.119  6000 192.168.107.119              6000       sdf 100.00      18725    0.00 &#10;&#10;            33       1     3 192.168.107.119  6000 192.168.107.119              6000       sdg 100.00      18725    0.00 &#10;&#10;            34       1     3 192.168.107.119  6000 192.168.107.119              6000       sdh 100.00      18724   -0.00 &#10;&#10;            35       1     3 192.168.107.119  6000 192.168.107.119              6000       sdi 100.00      18725    0.00 &#10;&#10;            36       1     3 192.168.107.119  6000 192.168.107.119              6000       sdj 100.00      18725    0.00 &#10;&#10;            37       1     3 192.168.107.119  6000 192.168.107.119              6000       sdk 100.00      18724   -0.00 &#10;&#10;            38       1     3 192.168.107.119  6000 192.168.107.119              6000       sdl 100.00      18724   -0.00 &#10;&#10;            39       1     3 192.168.107.119  6000 192.168.107.119              6000       sdm 100.00      18725    0.00 &#10;&#10;            40       1     3 192.168.107.119  6000 192.168.107.119              6000       sdn 100.00      18724   -0.00 &#10;&#10;            41       1     3 192.168.107.119  6000 192.168.107.119              6000       sdo 100.00      18725    0.00 &#10;&#10;[root@itswift1 swift]#</span><br></pre></td></tr></table></figure>
+<ul>
+<li>启动相关服务</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@itswift1 swift]# service memcached stop&#10;&#10;[root@itswift1 swift]# swift-init all stop&#10;&#10;[root@itswift1 swift]# service memcached start&#10;&#10;[root@itswift1 swift]# swift-init all start</span><br></pre></td></tr></table></figure>
+<h4 id="Swift_使用Tempauth测试">Swift 使用Tempauth测试</h4><ul>
+<li>设置环境变量</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;export ST_AUTH=http://192.168.107.116:8080/auth/v1.0&#10;&#10;export ST_USER=admin:admin&#10;&#10;export ST_KEY=admin</span><br></pre></td></tr></table></figure>
+<p>note: 这里admin:admin 和admin分别为tenant:user 和password，参见proxy-server.conf</p>
+<ul>
+<li>测试</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@itswift1 swift]# swift stat&#10;&#10;Account: AUTH_admin&#10;&#10;Containers: 0&#10;&#10;Objects: 0&#10;&#10;Bytes: 0&#10;&#10;Content-Type: text/plain; charset=utf-8&#10;&#10;X-Timestamp: 1434359418.22721&#10;&#10;X-Trans-Id: txc78c06c0db864ec0bcb85-00557e967a&#10;&#10;X-Put-Timestamp: 1434359418.22721</span><br></pre></td></tr></table></figure>
+<h4 id="Swfit与Keystone集成">Swfit与Keystone集成</h4><ul>
+<li>编辑 proxy-server.conf</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@itswift1 swift]# cat /etc/swift/proxy-server.conf&#10;&#10;[DEFAULT]&#10;&#10;bind_ip = 192.168.107.116 &#10;&#10;bind_port = 8080&#10;&#10;user = swift&#10;&#10;workers = 24&#10;&#10;log_name = swift-proxy &#10;&#10;log_level = DEBUG  &#10;&#10;log_facility = LOG_LOCAL0 &#10;&#10;[pipeline:main]&#10;&#10;pipeline = healthcheck cache authtoken keystoneauth proxy-server&#10;&#10;[app:proxy-server]&#10;&#10;use = egg:swift#proxy&#10;&#10;allow_account_management = true&#10;&#10;account_autocreate = true&#10;&#10;[filter:keystoneauth]&#10;&#10;use = egg:swift#keystoneauth&#10;&#10;operator_roles = Member,admin,SwiftOperator&#10;&#10;is_admin = true&#10;&#10;cache = swift.cache&#10;&#10;[filter:authtoken]&#10;&#10;paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory&#10;&#10;# Delaying the auth decision is required to support token-less&#10;&#10;# usage for anonymous referrers (&#39;.r:*&#39;).&#10;&#10;#delay_auth_decision = true&#10;&#10;&#10;# cache directory for signing certificate&#10;&#10;signing_dir = /home/swift/keystone-signing&#10;&#10;&#10;# auth_* settings refer to the Keystone server&#10;&#10;auth_protocol = http&#10;&#10;auth_host = keystone_host&#10;&#10;auth_port = 35357&#10;&#10;&#10;# the service tenant and swift username and password created in Keystone&#10;&#10;auth_uri = http://keystone_host:5000/v2.0/ &#10;&#10;admin_tenant_name = service&#10;&#10;admin_user = swift&#10;&#10;admin_password = swift &#10;&#10;&#10;[filter:cache]&#10;&#10;use = egg:swift#memcache&#10;&#10;memcache_servers = 192.168.107.116:11211,192.168.107.118:11211,192.168.107.119:11211&#10;&#10;[filter:catch_errors]&#10;&#10;use = egg:swift#catch_errors&#10;&#10;&#10;[filter:healthcheck]&#10;&#10;use = egg:swift#healthcheck</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>配置 Keystone</p>
+<ul>
+<li>创建 user and role</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># keystone user-create --name=swift --pass=swift --email=swift@example.com&#10;&#10;# keystone user-role-add --user=swift --tenant=service --role=admin</span><br></pre></td></tr></table></figure>
+<pre><code>+ 创建 service <span class="preprocessor">entry</span>
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># keystone service-create --name=swift --type=object-store --description=&#34;Object Storage Service&#34;&#10;&#10;+-------------+----------------------------------+&#10;&#10;|   Property  |              Value               |&#10;&#10;+-------------+----------------------------------+&#10;&#10;| description |      Object Storage Service      |&#10;&#10;|             |                                  |&#10;&#10;|             |                                  |&#10;&#10;|      id     | eede9296683e4b5ebfa13f5166375ef6 |&#10;&#10;|     name    |              swift               |&#10;&#10;|     type    |           object-store           |&#10;&#10;+-------------+----------------------------------+</span><br></pre></td></tr></table></figure>
+<pre><code><span class="bullet">+ </span>创建 endpoint
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># keystone endpoint-create \&#10;&#10;  --service-id=the_service_id_above \&#10;&#10;  --publicurl=&#39;http://swift-proxy:8080/v1/AUTH_%(tenant_id)s&#39; \&#10;&#10;  --internalurl=&#39;http://swift-proxy:8080/v1/AUTH_%(tenant_id)s&#39; \&#10;&#10;  --adminurl=http://swift-proxy:8080&#10;&#10;+-------------+---------------------------------------------------+&#10;&#10;|   Property  |                       Value                       |&#10;&#10;+-------------+---------------------------------------------------+&#10;&#10;|   adminurl  |            http://swift-proxy:8080/                |&#10;&#10;|      id     |          9e3ce428f82b40d38922f242c095982e         |&#10;&#10;| internalurl | http://swift-proxy:8080/v1/AUTH_%(tenant_id)s      |&#10;&#10;|  publicurl  | http://swift-proxy:8080/v1/AUTH_%(tenant_id)s      |&#10;&#10;|    region   |                     regionOne                     |&#10;&#10;|  service_id |          eede9296683e4b5ebfa13f5166375ef6         |&#10;&#10;+-------------+---------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<h4 id="Swift_和Glance集成">Swift 和Glance集成</h4><ul>
+<li>编辑 glance-api.conf，添加或更改以下配置</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;default_store = swift&#10;&#10;swift_store_auth_version = 2&#10;&#10;swift_store_auth_address = http://keystone_host:5000/v2.0/&#10;&#10;swift_store_user = service:swift&#10;&#10;swift_store_key = swift&#10;&#10;swift_store_create_container_on_put = True&#10;&#10;swift_store_large_object_size = 5120&#10;&#10;swift_store_large_object_chunk_size = 200&#10;&#10;swift_enable_snet = False</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>重启 glance-api 服务</p>
+</li>
+<li><p>用”glance image-create”命令创建image试试</p>
+</li>
+</ul>
+<p>Done.</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Swift/">Swift</a>►<a class="article-category-link" href="/categories/Swift/Openstack/">Openstack</a>►<a class="article-category-link" href="/categories/Swift/Openstack/Troubleshooting/">Troubleshooting</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Glance/">Glance</a><a href="/tags/Keystone/">Keystone</a><a href="/tags/Openstack/">Openstack</a><a href="/tags/Swift/">Swift</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://majian.in/2015/06/25/swift-install-keystone-glance/" data-title="搭建Swift 集群并与Keystone和Glance 集成 | Jason Ma&#39;s Tech Blog" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/06/25/troubleshooting-swift/" title="Troubleshooting 搭建Swift集群时遇到的问题">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Troubleshooting 搭建Swift集群时遇到的问题</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/05/27/Nova-rebuild-test/"  title="测试&quot;Nova rebuild&quot;">
+ <strong>下一篇：</strong><br/> 
+ <span>测试&quot;Nova rebuild&quot;
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/06/25/swift-install-keystone-glance/" data-title="搭建Swift 集群并与Keystone和Glance 集成" data-url="http://majian.in/2015/06/25/swift-install-keystone-glance/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Topo"><span class="toc-number">1.</span> <span class="toc-text">Topo</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#OS_配置"><span class="toc-number">2.</span> <span class="toc-text">OS 配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swift_Proxy_node_配置"><span class="toc-number">3.</span> <span class="toc-text">Swift Proxy node 配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swift_Storage_node_配置"><span class="toc-number">4.</span> <span class="toc-text">Swift Storage node 配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#创建_rings"><span class="toc-number">5.</span> <span class="toc-text">创建 rings</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swift_使用Tempauth测试"><span class="toc-number">6.</span> <span class="toc-text">Swift 使用Tempauth测试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swfit与Keystone集成"><span class="toc-number">7.</span> <span class="toc-text">Swfit与Keystone集成</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Swift_和Glance集成"><span class="toc-number">8.</span> <span class="toc-text">Swift 和Glance集成</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/GPFS/" title="GPFS">GPFS<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Swift/Openstack/" title="Openstack">Openstack<sup>7</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/GPFS/Openstack/" title="Openstack">Openstack<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Swift/Openstack/Salt/" title="Salt">Salt<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Swift/" title="Swift">Swift<sup>7</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Swift/Openstack/Troubleshooting/" title="Troubleshooting">Troubleshooting<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/GPFS/Openstack/Troubleshooting/" title="Troubleshooting">Troubleshooting<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Swift/" title="Swift">Swift<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GPFS/" title="GPFS">GPFS<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Glance/" title="Glance">Glance<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Keystone/" title="Keystone">Keystone<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Nova/" title="Nova">Nova<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/curl/" title="curl">curl<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Neutron/" title="Neutron">Neutron<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Cinder/" title="Cinder">Cinder<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Troubleshooting/" title="Troubleshooting">Troubleshooting<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Salt/" title="Salt">Salt<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Jason Ma. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/jasonmajian" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		
+		
+		
+		<a href="mailto:jianma@outlook.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-sa/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-sa.svg" alt="Creative Commons" />
+          </a>
+	  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+	  </script>
+	<span id="busuanzi_container_site_pv">
+    本站总访问量<span id="busuanzi_value_site_pv"></span>次
+	</span>
+	<span id="busuanzi_container_site_uv">
+  本站访客数<span id="busuanzi_value_site_uv"></span>人次
+	</span> 
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Jason Ma">Jason Ma</a>
+		
+		
+		</p>
+		<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+  (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+  e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install','aZww3zx8z1ckszENXWTn','2.0.0');
+</script>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"jasonblog"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fef7ca695a563268850bd2bdeaba14b4' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

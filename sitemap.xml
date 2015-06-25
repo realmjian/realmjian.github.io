@@ -2,6 +2,51 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
+    <lastmod>2015-06-25T14:28:05.807Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/06/25/salt-install-swift/</loc>
+    <lastmod>2015-06-25T14:26:07.676Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-ring-operation/</loc>
+    <lastmod>2015-06-25T14:14:12.585Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-curl-api/</loc>
+    <lastmod>2015-06-25T14:07:21.472Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-tuning/</loc>
+    <lastmod>2015-06-25T13:53:20.011Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-get-nodes/</loc>
+    <lastmod>2015-06-25T13:34:23.012Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/05/26/Cinder-failed-over-GPFS/</loc>
+    <lastmod>2015-06-25T13:20:24.018Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/06/25/troubleshooting-swift/</loc>
+    <lastmod>2015-06-25T13:18:59.319Z</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://majian.in/2015/06/25/swift-install-keystone-glance/</loc>
+    <lastmod>2015-06-25T13:15:21.399Z</lastmod>
+  </url>
+  
+  <url>
     <loc>http://majian.in/2015/05/23/to-do/</loc>
     <lastmod>2015-05-27T15:36:04.060Z</lastmod>
   </url>
@@ -24,16 +69,6 @@
   <url>
     <loc>http://majian.in/2015/05/23/installation-of-GPFS-cluster/</loc>
     <lastmod>2015-05-26T15:24:50.031Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
-    <lastmod>2015-05-26T15:20:39.463Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/2015/05/26/Cinder-failed-over-GPFS/</loc>
-    <lastmod>2015-05-26T15:12:58.858Z</lastmod>
   </url>
   
   <url>

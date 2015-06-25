@@ -1,0 +1,607 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>使用cURL操作Openstack Swift 存储的ReST API | Jason Ma&#39;s Tech Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Jason Ma">
+    
+
+    
+    <meta name="description" content="发现一篇文章写的不错，转载一下，如何使用cURL操作Openstack Swift 存储的ReST API">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用cURL操作Openstack Swift 存储的ReST API">
+<meta property="og:url" content="http://majian.in/2015/06/25/swift-curl-api/index.html">
+<meta property="og:site_name" content="Jason Ma's Tech Blog">
+<meta property="og:description" content="发现一篇文章写的不错，转载一下，如何使用cURL操作Openstack Swift 存储的ReST API">
+<meta property="og:updated_time" content="2015-06-25T14:07:21.472Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用cURL操作Openstack Swift 存储的ReST API">
+<meta name="twitter:description" content="发现一篇文章写的不错，转载一下，如何使用cURL操作Openstack Swift 存储的ReST API">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    
+<script type="text/javascript">
+#�����İٶ�ͳ�ƴ���
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?2ef7ca695a563268850bd2bdeaba14b4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Jason Ma&#39;s Tech Blog" title="Jason Ma&#39;s Tech Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Jason Ma&#39;s Tech Blog">Jason Ma&#39;s Tech Blog</a></h1>
+				<h2 class="blog-motto">Writing 1000 Words a Day Changes My Life(testing blog)</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/tags">Tags</a></li>
+					
+						<li><a href="/categories">Categories</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 8159045344704375541 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/06/25/swift-curl-api/" title="使用cURL操作Openstack Swift 存储的ReST API" itemprop="url">使用cURL操作Openstack Swift 存储的ReST API</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
+		
+  <p class="article-time">
+    <time datetime="2015-06-25T13:55:18.000Z" itemprop="datePublished"> 发表于 2015-06-25</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#认证"><span class="toc-number">1.</span> <span class="toc-text">认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#确定存储的使用情况"><span class="toc-number">2.</span> <span class="toc-text">确定存储的使用情况</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建一个存储容器"><span class="toc-number">3.</span> <span class="toc-text">创建一个存储容器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#上传一个存储对象"><span class="toc-number">4.</span> <span class="toc-text">上传一个存储对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#其他cURL命令"><span class="toc-number">5.</span> <span class="toc-text">其他cURL命令</span></a></li></ol>
+		
+		</div>
+		
+		<p>发现一篇文章写的不错，转载一下，如何使用cURL操作Openstack Swift 存储的ReST API </p>
+<a id="more"></a>
+<p>原文：<a href="http://www.cnblogs.com/yuxc/archive/2011/10/07/2200656.html" target="_blank" rel="external">http://www.cnblogs.com/yuxc/archive/2011/10/07/2200656.html</a></p>
+<p>cURL 是一个利用URL语法规定来传输文件和数据的工具，支持很多协议，如HTTP、FTP、TELNET等。本文主要是介绍使用该工具和HTTP协议与swift服务如何交互。cURL允许你从命令行或shell脚本传送和接收HTTP的请求和响应。这使得直接与ReST的API工作而无需其他客服端APIs成为可能。本文，我们需要使用到以下的cURL命令行选项：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-X METHOD &#25551;&#36848;HTTP&#30340;&#35831;&#27714;&#26041;&#27861;(HEAD, GET&#31561;)&#10;-D Dump &#23558;HTTP&#21709;&#24212;&#22836;&#37096;&#21040;stdout.&#10;-H HEADER &#25551;&#36848;&#19968;&#20010;&#22312;&#35831;&#27714;&#20013;&#30340;HTTP\HTTPS&#22836;&#37096;.&#10;-v &#20351;&#29992;&#25805;&#20316;&#30340;&#36807;&#31243;&#26356;&#21152;&#35814;&#32454;</span><br></pre></td></tr></table></figure>
+<h3 id="认证">认证</h3><p>In order to use the ReST API, you will first need to obtain a authorization token, which will need to be passed in for each request using the X-Auth-Token header. The following example demonstrates how to use cURL to obtain the authorization token and the URL of the storage system.</p>
+<p>为了使用ReST的API，我们首先需要获得一个认证令牌，用于传给每个使用<code>X-Auth-Token</code>头部的请求。以下的例子展示了如何使用cURL来获得认证令牌和存储系统的URL。</p>
+<ul>
+<li>Exp1：获得X-Storage-Url和X-Auth-Token</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -D- -H &#39;X-Storage-User: test:tester&#39; -H &#39;X-Storage-Pass: testing&#39; http://127.0.0.1:8080/auth/v1.0</span><br></pre></td></tr></table></figure>
+<p>运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sting&#39; http://127.0.0.1:8080/auth/v1.0 &#10;HTTP/1.1 200 OK &#10;X-Storage-Url: http://127.0.0.1:8080/v1/AUTH_test &#10;X-Storage-Token: AUTH_tkf828cc87bb9348168a52619b1f7e3928 &#10;X-Auth-Token: AUTH_tkf828cc87bb9348168a52619b1f7e3928 &#10;Content-Length: 0 &#10;Date: Fri, 07 Oct 2011 07:45:58 GMT</span><br></pre></td></tr></table></figure>
+<p>也可以使用-v选项来获得更详细的信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -v -H &#39;X-Storage-User: test:tester&#39; -H &#39;X-Storage-Pass: testing&#39; http://127.0.0.1:8080/auth/v1.0</span><br></pre></td></tr></table></figure>
+<p>运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">* About to connect() to 127.0.0.1 port 8080 (#0) &#10;*   Trying 127.0.0.1... connected &#10;* Connected to 127.0.0.1 (127.0.0.1) port 8080 (#0) &#10;&#62; GET /auth/v1.0 HTTP/1.1 &#10;&#62; User-Agent: curl/7.21.3 (i686-pc-linux-gnu) libcurl/7.21.3 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.18 &#10;&#62; Host: 127.0.0.1:8080 &#10;&#62; Accept: */* &#10;&#62; X-Storage-User: test:tester &#10;&#62; X-Storage-Pass: testing &#10;&#62;  &#10;&#60; HTTP/1.1 200 OK &#10;&#60; X-Storage-Url: http://127.0.0.1:8080/v1/AUTH_test &#10;&#60; X-Storage-Token: AUTH_tkf828cc87bb9348168a52619b1f7e3928 &#10;&#60; X-Auth-Token: AUTH_tkf828cc87bb9348168a52619b1f7e3928 &#10;&#60; Content-Length: 0 &#10;&#60; Date: Fri, 07 Oct 2011 07:48:30 GMT &#10;&#60;  &#10;* Connection #0 to host 127.0.0.1 left intact &#10;* Closing connection #0</span><br></pre></td></tr></table></figure>
+<p>存储URL和认证令牌作为响应头部返回。在认证之后，你可以使用cURL来执行存储服务上的<code>HEAD</code>,<code>GET</code>,<code>DELETE</code>,<code>POST</code>和<code>PUT</code>请求。</p>
+<h3 id="确定存储的使用情况">确定存储的使用情况</h3><p>一个HEAD请求可以发送到存储服务来确定你已经在系统中存储了多少数据以及你使用的容器数量。使用-X开关来描述正确的HTTP方法和-D将HTTP响应头部输出到终端(stdout)。</p>
+<ul>
+<li>Exp2:查询帐号的存储使用情况</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -X HEAD -D - \ -H &#34;X-Auth-Token:AUTH_tkf828cc87bb9348168a52619b1f7e3928&#34; \ http://127.0.0.1:8080/v1/AUTH_test</span><br></pre></td></tr></table></figure>
+<p>输出如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 204 No Content &#10;X-Account-Object-Count: 3 &#10;X-Account-Bytes-Used: 92983 &#10;X-Account-Container-Count: 4 &#10;Accept-Ranges: bytes &#10;Content-Length: 0 &#10;Date: Fri, 07 Oct 2011 08:04:38 GMT</span><br></pre></td></tr></table></figure>
+<p>HTTP请求必须包含了一个头部来描述认证令牌。在响应中的HTTP头部显示在该存储帐号中的容器数量和整个帐号所存储的总字节数。</p>
+<h3 id="创建一个存储容器">创建一个存储容器</h3><p>在上传任何数据到OpenStack的对象存储之前，你必须创建一个存储容器。你可以使用PUT请求来创建一个容器；cURL也可以用于该目的。</p>
+<ul>
+<li>Exp3:创建一个photos的容器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -X PUT -D - -H &#34;X-Auth-Token:AUTH_tkf828cc87bb9348168a52619b1f7e3928&#34; http://127.0.0.1:8080/v1/AUTH_test/photos</span><br></pre></td></tr></table></figure>
+<p>运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 201 Created &#10;Content-Length: 18 &#10;Content-Type: text/html; charset=UTF-8 &#10;Date: Fri, 07 Oct 2011 08:18:44 GMT</span><br></pre></td></tr></table></figure>
+<p>返回201（Created）的HTTP状态代码表示容器已被成功地创建。</p>
+<h3 id="上传一个存储对象">上传一个存储对象</h3><p>在创建完一个容器之后，你可以上传一个本地文件。对于这个例子，我们上传一张林志玲MM的照片。-T开关描述到上传的本地文件的完整路径。</p>
+<ul>
+<li>Exp4:上传对象</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -X PUT -T  /home/swift/&#19979;&#36733;/lzl.jpg -D - \ -H &#34;Content-Type: image/jpeg&#34; \ -H &#34;X-Auth-Token: AUTH_tkf828cc87bb9348168a52619b1f7e3928&#34; \ -H &#34;X-Object-Meta-lzl: &#19968;&#24352;&#20851;&#20110;&#26519;&#24535;&#29618;&#30340;&#32654;&#22270;&#34; \ http://127.0.0.1:8080/v1/AUTH_test/photos/lzl.jpg</span><br></pre></td></tr></table></figure>
+<p>结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 201 Created &#10;Content-Length: 118 &#10;Content-Type: text/html; charset=UTF-8 &#10;Etag: 870563216b9f54942fc09d574aa3e2bd &#10;Last-Modified: Fri, 07 Oct 2011 08:39:49 GMT &#10;Date: Fri, 07 Oct 2011 08:39:51 GMT</span><br></pre></td></tr></table></figure>
+<h3 id="其他cURL命令">其他cURL命令</h3><p>你可以使用cURL工具发出任何已定义的用于OpenStack对象存储的ReST方法。例如，你可以使用cURL来发送POST和DELETE请求即使我们没有提供的相关例子。比如，下载刚才上传的照片：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -X GET -H &#34;X-Auth-Token: AUTH_tkf828cc87bb9348168a52619b1f7e3928&#34; http://127.0.0.1:8080/v1/AUTH_test/photos/lzl.jpg &#62;td_lzl.jpg</span><br></pre></td></tr></table></figure>
+<p>注意：一般地，你每次调用curl来执行一个操作，系统就会创建一个独立的TCP/IP和SSL连接（https）然后丢弃。然而，使用语言的APIs是设计用来重用这些在操作之间的连接，因此提供了更好的细嫩。我们推荐在你的产品应用中使用一种支持语言的APIs并且限制curl仅用来快速和简单地测试/诊断。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Swift/">Swift</a>►<a class="article-category-link" href="/categories/Swift/Openstack/">Openstack</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Openstack/">Openstack</a><a href="/tags/Swift/">Swift</a><a href="/tags/curl/">curl</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://majian.in/2015/06/25/swift-curl-api/" data-title="使用cURL操作Openstack Swift 存储的ReST API | Jason Ma&#39;s Tech Blog" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/06/25/swift-ring-operation/" title="Swift 对 Ring 的相关操作">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Swift 对 Ring 的相关操作</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/06/25/swift-tuning/"  title="Swift 集群配置优化">
+ <strong>下一篇：</strong><br/> 
+ <span>Swift 集群配置优化
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/06/25/swift-curl-api/" data-title="使用cURL操作Openstack Swift 存储的ReST API" data-url="http://majian.in/2015/06/25/swift-curl-api/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#认证"><span class="toc-number">1.</span> <span class="toc-text">认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#确定存储的使用情况"><span class="toc-number">2.</span> <span class="toc-text">确定存储的使用情况</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#创建一个存储容器"><span class="toc-number">3.</span> <span class="toc-text">创建一个存储容器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#上传一个存储对象"><span class="toc-number">4.</span> <span class="toc-text">上传一个存储对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#其他cURL命令"><span class="toc-number">5.</span> <span class="toc-text">其他cURL命令</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/GPFS/" title="GPFS">GPFS<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Swift/Openstack/" title="Openstack">Openstack<sup>7</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/GPFS/Openstack/" title="Openstack">Openstack<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Swift/Openstack/Salt/" title="Salt">Salt<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Swift/" title="Swift">Swift<sup>7</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Swift/Openstack/Troubleshooting/" title="Troubleshooting">Troubleshooting<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/GPFS/Openstack/Troubleshooting/" title="Troubleshooting">Troubleshooting<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Swift/" title="Swift">Swift<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GPFS/" title="GPFS">GPFS<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Glance/" title="Glance">Glance<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Keystone/" title="Keystone">Keystone<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Nova/" title="Nova">Nova<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/curl/" title="curl">curl<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Neutron/" title="Neutron">Neutron<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Cinder/" title="Cinder">Cinder<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Troubleshooting/" title="Troubleshooting">Troubleshooting<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Salt/" title="Salt">Salt<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Jason Ma. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/jasonmajian" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		
+		
+		
+		<a href="mailto:jianma@outlook.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-sa/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-sa.svg" alt="Creative Commons" />
+          </a>
+	  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+	  </script>
+	<span id="busuanzi_container_site_pv">
+    本站总访问量<span id="busuanzi_value_site_pv"></span>次
+	</span>
+	<span id="busuanzi_container_site_uv">
+  本站访客数<span id="busuanzi_value_site_uv"></span>人次
+	</span> 
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Jason Ma">Jason Ma</a>
+		
+		
+		</p>
+		<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+  (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+  e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install','aZww3zx8z1ckszENXWTn','2.0.0');
+</script>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"jasonblog"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fef7ca695a563268850bd2bdeaba14b4' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
