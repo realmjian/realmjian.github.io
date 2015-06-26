@@ -3,6 +3,72 @@
 
     
   <url>
+    <loc>http://majian.in/2015/05/23/Nova-evacuate-test/</loc>
+    <lastmod>2015-06-26T14:03:18.041Z</lastmod>
+    <data>
+        <display>
+        <title>测试"Nova evacuate"</title>
+        <pubTime>2015-05-23T04:29:43.000Z</pubTime>
+        
+        <tag>Nova </tag>
+         
+        <tag>Openstack </tag>
+         
+         
+           
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/05/27/delete-floatingip-on-neutron-node/</loc>
+    <lastmod>2015-06-26T14:03:05.062Z</lastmod>
+    <data>
+        <display>
+        <title>在Neutron节点上用namespace删除floating IP</title>
+        <pubTime>2015-05-27T14:48:23.000Z</pubTime>
+        
+        <tag>Neutron </tag>
+         
+        <tag>Openstack </tag>
+         
+         
+           
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://majian.in/2015/05/27/Nova-rebuild-test/</loc>
+    <lastmod>2015-06-26T14:02:03.370Z</lastmod>
+    <data>
+        <display>
+        <title>测试"Nova rebuild"</title>
+        <pubTime>2015-05-27T15:21:39.000Z</pubTime>
+        
+        <tag>Nova </tag>
+         
+        <tag>Openstack </tag>
+         
+         
+           
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Openstack/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://majian.in/2015/06/25/swift-install-keystone-glance/</loc>
     <lastmod>2015-06-26T13:57:25.696Z</lastmod>
     <data>
@@ -264,72 +330,6 @@
         
          
            
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://majian.in/2015/05/27/Nova-rebuild-test/</loc>
-    <lastmod>2015-05-27T15:33:35.913Z</lastmod>
-    <data>
-        <display>
-        <title>测试"Nova rebuild"</title>
-        <pubTime>2015-05-27T15:21:39.000Z</pubTime>
-        
-        <tag>Nova </tag>
-         
-        <tag>Openstack </tag>
-         
-         
-           
-             
-              <breadCrumb title="Openstack" url="http://majian.in/categories/Openstack/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://majian.in/2015/05/27/delete-floatingip-on-neutron-node/</loc>
-    <lastmod>2015-05-27T15:24:31.505Z</lastmod>
-    <data>
-        <display>
-        <title>在Neutron节点上用namespace删除floating IP</title>
-        <pubTime>2015-05-27T14:48:23.000Z</pubTime>
-        
-        <tag>Neutron </tag>
-         
-        <tag>Openstack </tag>
-         
-         
-           
-             
-              <breadCrumb title="Openstack" url="http://majian.in/categories/Openstack/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://majian.in/2015/05/23/Nova-evacuate-test/</loc>
-    <lastmod>2015-05-27T15:22:06.147Z</lastmod>
-    <data>
-        <display>
-        <title>测试"Nova evacuate"</title>
-        <pubTime>2015-05-23T04:29:43.000Z</pubTime>
-        
-        <tag>Nova </tag>
-         
-        <tag>Openstack </tag>
-         
-         
-           
-             
-              <breadCrumb title="Openstack" url="http://majian.in/categories/Openstack/"/>
-          
         </display>
     </data>
     </url>
