@@ -2,6 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://majian.in/2015/06/25/swift-install-keystone-glance/</loc>
+    <lastmod>2015-06-26T13:57:25.696Z</lastmod>
+  </url>
+  
+  <url>
     <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
     <lastmod>2015-06-25T14:28:05.807Z</lastmod>
   </url>
@@ -39,11 +44,6 @@
   <url>
     <loc>http://majian.in/2015/06/25/troubleshooting-swift/</loc>
     <lastmod>2015-06-25T13:18:59.319Z</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://majian.in/2015/06/25/swift-install-keystone-glance/</loc>
-    <lastmod>2015-06-25T13:15:21.399Z</lastmod>
   </url>
   
   <url>

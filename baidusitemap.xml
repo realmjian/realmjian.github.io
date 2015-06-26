@@ -3,6 +3,38 @@
 
     
   <url>
+    <loc>http://majian.in/2015/06/25/swift-install-keystone-glance/</loc>
+    <lastmod>2015-06-26T13:57:25.696Z</lastmod>
+    <data>
+        <display>
+        <title>搭建Swift 集群并与Keystone和Glance 集成</title>
+        <pubTime>2015-06-25T12:10:43.000Z</pubTime>
+        
+        <tag>Glance </tag>
+         
+        <tag>Keystone </tag>
+         
+        <tag>Openstack </tag>
+         
+        <tag>Swift </tag>
+         
+         
+           
+             
+              <breadCrumb title="Swift" url="http://majian.in/categories/Swift/"/>
+          
+             
+              <breadCrumb title="Openstack" url="http://majian.in/categories/Swift/Openstack/"/>
+          
+             
+              <breadCrumb title="Troubleshooting" url="http://majian.in/categories/Swift/Openstack/Troubleshooting/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://majian.in/2015/05/23/GPFS-installation-with-libc-so-6-issue/</loc>
     <lastmod>2015-06-25T14:28:05.807Z</lastmod>
     <data>
@@ -197,38 +229,6 @@
         <display>
         <title>Troubleshooting 搭建Swift集群时遇到的问题</title>
         <pubTime>2015-06-25T13:14:30.000Z</pubTime>
-        
-        <tag>Glance </tag>
-         
-        <tag>Keystone </tag>
-         
-        <tag>Openstack </tag>
-         
-        <tag>Swift </tag>
-         
-         
-           
-             
-              <breadCrumb title="Swift" url="http://majian.in/categories/Swift/"/>
-          
-             
-              <breadCrumb title="Openstack" url="http://majian.in/categories/Swift/Openstack/"/>
-          
-             
-              <breadCrumb title="Troubleshooting" url="http://majian.in/categories/Swift/Openstack/Troubleshooting/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://majian.in/2015/06/25/swift-install-keystone-glance/</loc>
-    <lastmod>2015-06-25T13:15:21.399Z</lastmod>
-    <data>
-        <display>
-        <title>搭建Swift 集群并与Keystone和Glance 集成</title>
-        <pubTime>2015-06-25T12:10:43.000Z</pubTime>
         
         <tag>Glance </tag>
          

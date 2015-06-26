@@ -17,7 +17,7 @@
 <meta property="og:url" content="http://majian.in/2015/06/25/swift-install-keystone-glance/index.html">
 <meta property="og:site_name" content="Jason Ma's Tech Blog">
 <meta property="og:description" content="我们的环境一直在用GPFS做为Image,Volume和Instance的统一存储，因为要开放虚拟机的Snapshot功能，所以对于镜像存储要有多个选择，并做分层级的备份方案.比如除GPFS外，测试Swift和Ceph。并且考虑对于位于分布式存储上的镜像文件，周期性的备份到IBM TSM（磁带存储）上并做为异地备份.下面是这次搭建Swift集群的记录.">
-<meta property="og:updated_time" content="2015-06-25T13:15:21.399Z">
+<meta property="og:updated_time" content="2015-06-26T13:57:25.696Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="搭建Swift 集群并与Keystone和Glance 集成">
 <meta name="twitter:description" content="我们的环境一直在用GPFS做为Image,Volume和Instance的统一存储，因为要开放虚拟机的Snapshot功能，所以对于镜像存储要有多个选择，并做分层级的备份方案.比如除GPFS外，测试Swift和Ceph。并且考虑对于位于分布式存储上的镜像文件，周期性的备份到IBM TSM（磁带存储）上并做为异地备份.下面是这次搭建Swift集群的记录.">
@@ -266,7 +266,7 @@ var _hmt = _hmt || [];
 <li>举个栗子</li>
 </ul>
 <p>按照Swift 官方说明(以/dev/sdb1为例):</p>
-<p>/dev/sdb1        —&gt; mounted as /srv/node</p>
+<p>/dev/sdb1        —&gt; mounted as /srv/node/sdb1</p>
 <p>in rsyncd.conf   —&gt; /srv/node also as one modoule </p>
 <p>in account-server.conf, ‘devices = /srv/node’,’bind_ip = 192.168.107.116’,’bind_port = 6002’</p>
 <p>使用相同的devices/IP/port 配置container-server.conf and object-server.conf (on same node)</p>
