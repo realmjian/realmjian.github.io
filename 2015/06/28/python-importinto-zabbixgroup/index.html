@@ -1,0 +1,591 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Python脚本-批量导入IP 列表到Zabbix的组里 | Jason Ma&#39;s Tech Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Jason Ma">
+    
+
+    
+    <meta name="description" content="需要从把一个IP地址的列表导入到Zabbix的组里，写了个简单的Python脚本直接写入Zabbix的Mysql数据库里来实现.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python脚本-批量导入IP 列表到Zabbix的组里">
+<meta property="og:url" content="http://majian.in/2015/06/28/python-importinto-zabbixgroup/index.html">
+<meta property="og:site_name" content="Jason Ma's Tech Blog">
+<meta property="og:description" content="需要从把一个IP地址的列表导入到Zabbix的组里，写了个简单的Python脚本直接写入Zabbix的Mysql数据库里来实现.">
+<meta property="og:updated_time" content="2015-06-28T14:46:55.272Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python脚本-批量导入IP 列表到Zabbix的组里">
+<meta name="twitter:description" content="需要从把一个IP地址的列表导入到Zabbix的组里，写了个简单的Python脚本直接写入Zabbix的Mysql数据库里来实现.">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Jason Ma&#39;s Tech Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    
+<script type="text/javascript">
+#�����İٶ�ͳ�ƴ���
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?2ef7ca695a563268850bd2bdeaba14b4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Jason Ma&#39;s Tech Blog" title="Jason Ma&#39;s Tech Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Jason Ma&#39;s Tech Blog">Jason Ma&#39;s Tech Blog</a></h1>
+				<h2 class="blog-motto">Writing 1000 Words a Day Changes My Life(testing blog)</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+						<li><a href="/tags">Tags</a></li>
+					
+						<li><a href="/categories">Categories</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 8159045344704375541 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/06/28/python-importinto-zabbixgroup/" title="Python脚本-批量导入IP 列表到Zabbix的组里" itemprop="url">Python脚本-批量导入IP 列表到Zabbix的组里</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Jason Ma" target="_blank" itemprop="author">Jason Ma</a>
+		
+  <p class="article-time">
+    <time datetime="2015-06-28T14:40:25.000Z" itemprop="datePublished"> 发表于 2015-06-28</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			
+		
+		</div>
+		
+		<p>需要从把一个IP地址的列表导入到Zabbix的组里，写了个简单的Python脚本直接写入Zabbix的Mysql数据库里来实现.</p>
+<a id="more"></a>
+<p>批量导入IP list到Zabbix某个组里，如果该IP没有注册，先注册再加组</p>
+<p><code>cdc_pm_iplist</code> 是存放IP地址列表的文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;#coding=utf-8&#10;&#10;import MySQLdb&#10;&#10;&#10;&#10;f=open(&#39;cdc_pm_iplist&#39;,&#39;r&#39;)&#10;&#10;lines=f.readlines()&#10;&#10;lines_list=[]&#10;&#10;for i in range(len(lines)):&#10;&#10;        lines_list_content=lines[i].strip(&#39;\r\n&#39;)&#10;&#10;        lines_list.append(lines_list_content)&#10;&#10;f.close()&#10;&#10;&#10;&#10;try:&#10;&#10;        conn=MySQLdb.connect(host=&#39;localhost&#39;,port=3306,user=&#39;root&#39;,passwd=&#39;passw0rd&#39;,db=&#39;zabbix&#39;)&#10;&#10;        cur=conn.cursor()&#10;&#10;#get groupid&#10;&#10;        groupname=&#34;cdc_pm&#34;&#10;&#10;        sqlgroupid=&#34;select groupid from groups where name=&#39;cdc_pm&#39;&#34;&#10;&#10;        groupid=cur.fetchmany(cur.execute(sqlgroupid))[0][0]&#10;&#10;#get max hostgroupid and new hostgroupid&#10;&#10;        sqlhostgroupid_max=&#39;select hostgroupid from hosts_groups order by hostgroupid desc limit 1;&#39;&#10;&#10;        hostgroupid_max=cur.fetchmany(cur.execute(sqlhostgroupid_max))[0][0]&#10;&#10;        hostgroupid=int(hostgroupid_max)+1&#10;&#10;&#10;&#10;        for i in range(len(lines_list)):&#10;&#10;                IP=lines_list[i]&#10;&#10;                sqlhostid=&#39;select hostid from hosts where host= &#34;%s&#34;;&#39; % IP&#10;&#10;                bb=cur.execute(sqlhostid)&#10;&#10;                if bb==0:&#10;&#10;                        print &#39;this IP &#34;%s&#34; is not in Zabbix&#39; % IP&#10;&#10;                        print &#39;adding new server......&#39;&#10;&#10;                        sqlhostid_max=&#39;select hostid from hosts order by hostid desc limit 1;&#39;&#10;&#10;                        hostid_max=cur.fetchmany(cur.execute(sqlhostid_max))[0][0]&#10;&#10;                        hostid=int(hostid_max)+1&#10;&#10;                        sqlinserthost=&#39;insert into hosts (hostid,host) values (%s,&#34;%s&#34;)&#39; % (hostid,IP)&#10;&#10;                        cur.execute(sqlinserthost)&#10;&#10;                        print &#39;add server &#34;%s&#34; into Zabbix done&#39; % IP&#10;&#10;                        print &#39;adding server &#34;%s&#34; to group&#39; % IP&#10;&#10;                        value=[hostgroupid,hostid,groupid]&#10;&#10;                        sqlcheck=&#39;select * from hosts_groups where hostid=&#34;%s&#34; and groupid=&#34;%s&#34;&#39; % (hostid,groupid)&#10;&#10;                        result=cur.execute(sqlcheck)&#10;&#10;                        if result==0:&#10;&#10;                                sqlinsert=&#34;insert into hosts_groups values (%s,%s,%s)&#34;&#10;&#10;                                cur.execute(sqlinsert,value)&#10;&#10;                                hostgroupid+=1&#10;&#10;                                print &#39;This server &#34;%s&#34; has just been added to Group cdc_pm&#39; % IP&#10;&#10;                        else:&#10;&#10;                                print &#39;This server &#34;%s&#34; is already in Group cdc_pm&#39; % IP&#10;&#10;                else:&#10;&#10;                        cc=cur.fetchmany(bb)&#10;&#10;                        hostid=cc[0][0]&#10;&#10;                        value=[hostgroupid,hostid,groupid]&#10;&#10;                        sqlcheck=&#39;select * from hosts_groups where hostid=&#34;%s&#34; and groupid=&#34;%s&#34;&#39; % (hostid,groupid)&#10;&#10;                        result=cur.execute(sqlcheck)&#10;&#10;                        if result==0:&#10;&#10;                                sqlinsert=&#34;insert into hosts_groups values (%s,%s,%s)&#34;&#10;&#10;                                cur.execute(sqlinsert,value)&#10;&#10;                                hostgroupid+=1&#10;&#10;                                print &#39;This server &#34;%s&#34; has just been added to Group cdc_pm&#39; % IP&#10;&#10;                        else:&#10;&#10;                                print &#39;This server &#34;%s&#34; is already in Group cdc_pm&#39; % IP&#10;&#10;&#10;&#10;&#10;&#10;        cur.close()&#10;&#10;        conn.commit()&#10;&#10;        conn.close()&#10;&#10;&#10;&#10;except MySQLdb.Error,e:&#10;&#10;        print &#34;Mysql Error %d: %s&#34; % (e.args[0], e.args[1])</span><br></pre></td></tr></table></figure>  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Python/">Python</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Mysql/">Mysql</a><a href="/tags/Python/">Python</a><a href="/tags/Zabbix/">Zabbix</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://majian.in/2015/06/28/python-importinto-zabbixgroup/" data-title="Python脚本-批量导入IP 列表到Zabbix的组里 | Jason Ma&#39;s Tech Blog" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2015/06/28/nova-vnc-pwd/"  title="给Openstack里的虚机VNC添加密码和访问限制">
+ <strong>下一篇：</strong><br/> 
+ <span>给Openstack里的虚机VNC添加密码和访问限制
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/06/28/python-importinto-zabbixgroup/" data-title="Python脚本-批量导入IP 列表到Zabbix的组里" data-url="http://majian.in/2015/06/28/python-importinto-zabbixgroup/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ 
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/GPFS/" title="GPFS">GPFS<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>10</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Others/" title="Others">Others<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Python/" title="Python">Python<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Salt/" title="Salt">Salt<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Swift/" title="Swift">Swift<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Zabbix/" title="Zabbix">Zabbix<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Nova/" title="Nova">Nova<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Swift/" title="Swift">Swift<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GPFS/" title="GPFS">GPFS<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Glance/" title="Glance">Glance<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Keystone/" title="Keystone">Keystone<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Troubleshooting/" title="Troubleshooting">Troubleshooting<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Cinder/" title="Cinder">Cinder<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Others/" title="Others">Others<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Neutron/" title="Neutron">Neutron<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Zabbix/" title="Zabbix">Zabbix<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/cadvisor/" title="cadvisor">cadvisor<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/docker/" title="docker">docker<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/curl/" title="curl">curl<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Salt/" title="Salt">Salt<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Python/" title="Python">Python<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/VNC/" title="VNC">VNC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/rabbitmq/" title="rabbitmq">rabbitmq<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/lvm/" title="lvm">lvm<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Jason Ma. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		<a href="https://www.linkedin.com/in/jasonmajian" target="_blank" class="icon-linkedin" title="linkedin"></a>
+		
+		
+		
+		
+		
+		<a href="mailto:jianma@outlook.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-sa/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-sa.svg" alt="Creative Commons" />
+          </a>
+	  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+	  </script>
+	<span id="busuanzi_container_site_pv">
+    本站总访问量<span id="busuanzi_value_site_pv"></span>次
+	</span>
+	<span id="busuanzi_container_site_uv">
+  本站访客数<span id="busuanzi_value_site_uv"></span>人次
+	</span> 
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Jason Ma">Jason Ma</a>
+		
+		
+		</p>
+		<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+  (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+  e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install','aZww3zx8z1ckszENXWTn','2.0.0');
+</script>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"jasonblog"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/hm.js?5e938ee17d66895a8c950d3798bd0d01' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fef7ca695a563268850bd2bdeaba14b4' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

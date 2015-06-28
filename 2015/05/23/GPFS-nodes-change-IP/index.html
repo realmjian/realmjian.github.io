@@ -17,7 +17,7 @@
 <meta property="og:url" content="http://majian.in/2015/05/23/GPFS-nodes-change-IP/index.html">
 <meta property="og:site_name" content="Jason Ma's Tech Blog">
 <meta property="og:description" content="GPFS cluster所有node直接改了IP，导致cluster无法启动，原来需要严格的步骤来更改GPFS的IP">
-<meta property="og:updated_time" content="2015-06-26T14:12:42.778Z">
+<meta property="og:updated_time" content="2015-06-28T12:57:09.197Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="GPFS cluster 更改 IP">
 <meta name="twitter:description" content="GPFS cluster所有node直接改了IP，导致cluster无法启动，原来需要严格的步骤来更改GPFS的IP">
@@ -153,9 +153,11 @@ var _hmt = _hmt || [];
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;[root@gpfs1 network-scripts]# df -h&#10;&#10;Filesystem                          Size  Used Avail Use% Mounted on&#10;&#10;/dev/mapper/vg_opowergpfs1-lv_root   50G  4.0G   43G   9% /&#10;&#10;tmpfs                                64G   72K   64G   1% /dev/shm&#10;&#10;/dev/sda1                           485M   39M  421M   9% /boot&#10;&#10;/dev/mapper/vg_opowergpfs1-lv_home  863G  200M  819G   1% /home&#10;&#10;/dev/gpfs                            37T  2.7G   37T   1% /gpfs</span><br></pre></td></tr></table></figure>
 <p>更改成功。<br>下面是IBM 官方说明.</p>
 <p><a href="http://www-01.ibm.com/support/knowledgecenter/SSFKCN_3.5.0/com.ibm.cluster.gpfs.v3r5.gpfs200.doc/bl1adv_chnamip.htm" target="_blank" rel="external">http://www-01.ibm.com/support/knowledgecenter/SSFKCN_3.5.0/com.ibm.cluster.gpfs.v3r5.gpfs200.doc/bl1adv_chnamip.htm</a></p>
+<blockquote>
 <p>Changing IP addresses and host names</p>
 <p>GPFS? assumes that IP addresses and host names remain constant. In the rare event that such a change becomes necessary or is inadvertently introduced by reinstalling a node with a disk image from a different node for example, follow the steps in this topic.</p>
 <p>If all of the nodes in the cluster are affected and all the conditions in step 2 below are met:<br>Use the mmshutdown -a command to stop GPFS on all nodes.<br>Using the documented procedures for the operating system, add the new host names or IP addressees, but do not remove the old ones yet. This can be achieved, for example, by creating temporary alias entries in /etc/hosts. Avoid rebooting the nodes until the mmchnode command in step 3 is executed successfully. If any of these conditions cannot be met, utilize the alternate procedure described below.<br>Use mmchnode —daemon-interface and —admin-interface to update the GPFS configuration information.<br>If the IP addresses over which the subnet attribute is defined are changed, you need to update your configuration by using the mmchconfig command with the subnets attribute.<br>Start GPFS on all nodes with mmstartup -a.<br>Remove the unneeded old host names and IP addresses.<br>If only a subset of the nodes are affected, it may be easier to make the changes using these steps:<br>Before any of the host names or IP addresses are changed:<br>Use the mmshutdown command to stop GPFS on all affected nodes.<br>If the host names or IP addresses of the primary or secondary GPFS cluster configuration server nodes must change, use themmchcluster command to specify another node to serve as the primary or secondary GPFS cluster configuration server.<br>If the host names or IP addresses of an NSD server node must change, temporarily remove the node from being a server with themmchnsd command. Then, after the node has been added back to the cluster, use the mmchnsd command to change the NSDs to their original configuration. Use the mmlsnsd command to obtain the NSD server node names.<br>Use the mmdelnode command to delete all affected nodes from the GPFS cluster.<br>Change the node names and IP addresses using the documented procedures for the operating system.<br>If the IP addresses over which the subnet attribute is defined are changed, you need to update your configuration by using the mmchconfig command with the subnets attribute.<br>Issue the mmaddnode command to restore the nodes to the GPFS cluster.<br>If necessary, use the mmchcluster and mmchnsd commands to restore the original configuration and the NSD servers.<br><a href="http://terry2magic.blog.163.com/blog/static/692590572013728115625955/" target="_blank" rel="external">http://terry2magic.blog.163.com/blog/static/692590572013728115625955/</a></p>
+</blockquote>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -240,11 +242,15 @@ var _hmt = _hmt || [];
 		  
 		
 		  
-			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>5</sup></a></li>
+			<li><a href="/categories/Openstack/" title="Openstack">Openstack<sup>10</sup></a></li>
 		  
 		
 		  
 			<li><a href="/categories/Others/" title="Others">Others<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Python/" title="Python">Python<sup>1</sup></a></li>
 		  
 		
 		  
@@ -253,6 +259,10 @@ var _hmt = _hmt || [];
 		
 		  
 			<li><a href="/categories/Swift/" title="Swift">Swift<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Zabbix/" title="Zabbix">Zabbix<sup>1</sup></a></li>
 		  
 		
 		</ul>
@@ -265,7 +275,11 @@ var _hmt = _hmt || [];
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>11</sup></a></li>
+				<li><a href="/tags/Openstack/" title="Openstack">Openstack<sup>17</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Nova/" title="Nova">Nova<sup>8</sup></a></li>
 			
 		
 			
@@ -273,19 +287,23 @@ var _hmt = _hmt || [];
 			
 		
 			
-				<li><a href="/tags/Troubleshooting/" title="Troubleshooting">Troubleshooting<sup>4</sup></a></li>
+				<li><a href="/tags/GPFS/" title="GPFS">GPFS<sup>5</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/GPFS/" title="GPFS">GPFS<sup>4</sup></a></li>
+				<li><a href="/tags/Glance/" title="Glance">Glance<sup>4</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Glance/" title="Glance">Glance<sup>3</sup></a></li>
+				<li><a href="/tags/Keystone/" title="Keystone">Keystone<sup>4</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Keystone/" title="Keystone">Keystone<sup>3</sup></a></li>
+				<li><a href="/tags/Troubleshooting/" title="Troubleshooting">Troubleshooting<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Cinder/" title="Cinder">Cinder<sup>3</sup></a></li>
 			
 		
 			
@@ -293,15 +311,23 @@ var _hmt = _hmt || [];
 			
 		
 			
-				<li><a href="/tags/Nova/" title="Nova">Nova<sup>2</sup></a></li>
+				<li><a href="/tags/Neutron/" title="Neutron">Neutron<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Cinder/" title="Cinder">Cinder<sup>1</sup></a></li>
+				<li><a href="/tags/Zabbix/" title="Zabbix">Zabbix<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Neutron/" title="Neutron">Neutron<sup>1</sup></a></li>
+				<li><a href="/tags/cadvisor/" title="cadvisor">cadvisor<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/docker/" title="docker">docker<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/curl/" title="curl">curl<sup>1</sup></a></li>
 			
 		
 			
@@ -309,7 +335,23 @@ var _hmt = _hmt || [];
 			
 		
 			
-				<li><a href="/tags/curl/" title="curl">curl<sup>1</sup></a></li>
+				<li><a href="/tags/Python/" title="Python">Python<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/VNC/" title="VNC">VNC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/rabbitmq/" title="rabbitmq">rabbitmq<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/lvm/" title="lvm">lvm<sup>1</sup></a></li>
 			
 		
 		</ul>
